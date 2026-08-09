@@ -1,0 +1,854 @@
+<!-- ============ 1 · ESTADOS DE PAGO ============ -->
+<section class="panel" id="tab-eepp">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Paso 1 de 4</div>
+      <h1>Estados de pago por facturar</h1>
+      <p>Aquí le dices al proveedor <b>qué tiene que facturar</b>. Eliges la orden de compra, marcas el porcentaje
+        a liberar y la app arma el cuadro y el correo. Mientras no envíes ese correo, la factura no llega.</p>
+    </div>
+    <div class="acts">
+      <button class="btn" id="btnIrLib">Ver biblioteca de OC</button>
+      <button class="btn primary" id="btnFocoOc">Buscar una orden de compra</button>
+    </div>
+  </div>
+  <ul class="pasos">
+    <li><b>1</b> Elige la OC</li>
+    <li><b>2</b> Marca % a liberar e IVA</li>
+    <li><b>3</b> Agrega el estado de pago</li>
+    <li><b>4</b> Copia el correo al proveedor</li>
+  </ul>
+
+  <div class="card quiet" style="margin-bottom:16px">
+    <div class="body" style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+      <b class="small">¿De dónde salen los datos?</b>
+      <div class="seg" id="segModoEp">
+        <button data-modo="oc" class="on">Desde una orden de compra</button>
+        <button data-modo="masiva">Carga masiva (Excel o correo)</button>
+        <button data-modo="excel">Planilla conectada</button>
+      </div>
+      <span class="small muted" id="modoEpHint">Lo habitual: eliges la OC y la app trae todos los datos.</span>
+    </div>
+  </div>
+
+  <!-- --------- FORMULARIO PRINCIPAL --------- -->
+  <div id="modoOc">
+  <div class="card acento">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Preparar un estado de pago</h2>
+        <div class="d">Busca la OC por número, proveedor o project code: la app trae sola el proveedor, la sede,
+          el project code y el monto del contrato.</div>
+      </div>
+      <span class="spacer"></span>
+      <span class="small muted" id="ocCatInfo"></span>
+    </div>
+    <div class="body">
+      <div class="row">
+        <label class="fld" style="flex:1;min-width:320px">Orden de compra
+          <input type="text" id="ocBuscar" placeholder="POHUE-002538, CONSTRUCTORA…, HUECN26501" autocomplete="off">
+          <span class="hint">Escribe 3 letras o números y aparecen las coincidencias.</span></label>
+        <button class="btn" id="btnOcPdf" style="margin-bottom:18px">Cargar OC desde PDF…</button>
+        <button class="btn" id="btnOcCargar" style="margin-bottom:18px">…desde Excel</button>
+        <button class="btn" id="btnOcNueva" style="margin-bottom:18px">+ Nueva OC a mano</button>
+        <button class="btn ghost" id="btnOcLimpiar" style="margin-bottom:18px">Limpiar</button>
+        <input type="file" id="fileOcXl" accept=".xlsx,.xlsm,.xls,.csv" class="hide">
+        <input type="file" id="fileOcPdf" accept=".pdf" multiple class="hide">
+        <progress id="ocPdfProg" class="hide" max="100" value="0"></progress>
+        <span class="small muted" id="ocPdfProgTxt" style="margin-bottom:22px"></span>
+      </div>
+
+      <div id="ocResultados" class="hide" style="margin-top:12px">
+        <h3 style="margin-bottom:7px">Órdenes que coinciden</h3>
+        <div class="tbl-wrap" style="max-height:250px">
+          <table id="tblOcBuscar"><thead><tr><th>OC</th><th>Proveedor</th><th>Project code</th><th>Sede</th>
+            <th class="num">Monto OC</th><th class="num">Ya liberado</th><th class="num">Saldo</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+
+      <div class="drop mini" id="dropOcPdf" style="margin-top:12px">
+        <span class="ic">📄</span>
+        <b>Arrastra aquí las órdenes de compra en PDF</b><br>
+        <span class="small">Varias a la vez. Se leen la OC, el proveedor, el project code, la sede y el monto.</span>
+      </div>
+
+      <div id="ocPdfPanel" class="hide sub">
+        <div class="card-h"><h3>Órdenes leídas del PDF</h3><span class="spacer"></span>
+          <button class="btn sm primary" id="btnOcPdfGuardar">Guardar todas en la biblioteca</button>
+          <button class="btn sm" id="btnOcPdfLote">Guardar y preparar estados de pago</button>
+          <button class="btn sm ghost" id="btnOcPdfDescartar">Descartar</button></div>
+        <p class="small muted" style="margin:0 0 10px">Revisa antes de guardar. Las celdas con fondo claro y lápiz (✎) se corrigen haciendo clic.</p>
+        <div id="ocPdfAlertas"></div>
+        <div class="tbl-wrap" style="max-height:330px">
+          <table id="tblOcPdf"><thead>
+            <tr class="grupos"><th>Revisión</th><th colspan="4">Proveedor</th><th colspan="3">Imputación</th><th colspan="2">Montos</th><th colspan="3">Detalle</th></tr>
+            <tr><th>Control</th><th>OC</th><th>Vendor #</th><th>RUT</th><th>Proveedor</th>
+            <th>Project code</th><th>Cta.</th><th>Sede</th><th class="num">Monto neto OC</th><th>IVA</th>
+            <th>Glosa</th><th>Archivo</th><th></th></tr>
+          </thead><tbody></tbody></table>
+        </div>
+      </div>
+
+      <div id="ocNuevaForm" class="hide sub">
+        <div class="card-h"><h3>Nueva orden de compra</h3><span class="spacer"></span>
+          <span class="small muted">queda guardada en la biblioteca para las próximas semanas</span></div>
+        <div class="row">
+          <label class="fld">Purchase Order #<input type="text" id="nocOc" style="width:180px" placeholder="POHUE-002538"></label>
+          <label class="fld">Proveedor ya conocido
+            <select id="nocProv" style="min-width:260px"><option value="">— elige o escribe uno nuevo —</option></select></label>
+          <label class="fld">Nombre del proveedor<input type="text" id="nocProvNom" style="width:230px" placeholder="CONSTRUCTORA …"></label>
+          <label class="fld">RUT<input type="text" id="nocRut" style="width:130px" placeholder="76.664.873-8"></label>
+          <label class="fld">Vendor #<input type="text" id="nocVendor" style="width:105px" placeholder="V022348"></label>
+        </div>
+        <div class="row">
+          <label class="fld">Project Code #<input type="text" id="nocProy" style="width:150px" placeholder="HUECN26501"></label>
+          <label class="fld">o cuenta contable<input type="text" id="nocCta" style="width:115px" placeholder="68500"></label>
+          <label class="fld">Sede<select id="nocSede" style="width:95px"></select></label>
+          <label class="fld">Monto total de la OC<input type="text" id="nocMonto" class="num" style="width:165px" placeholder="523.943.500"></label>
+        </div>
+        <div class="row">
+          <label class="fld" style="flex:1;min-width:380px">Descripción de la OC
+            <input type="text" id="nocGlosa" placeholder="CONSTRUCCIÓN - Ampliación Edificio de Administración - Obras de Remodelación"></label>
+          <button class="btn primary" id="btnNocGuardar">Guardar y usar</button>
+          <button class="btn ghost" id="btnNocCancelar">Cancelar</button>
+        </div>
+      </div>
+
+      <div id="epEditBanner" class="alert warn hide" style="margin-top:12px">
+        <b>Estás editando un estado de pago ya registrado.</b> <span id="epEditTxt"></span>
+        <button class="btn sm ghost" id="btnEpCancelarEdicion" style="margin-left:8px">Cancelar edición</button>
+      </div>
+
+      <!-- --------- ficha de la OC elegida --------- -->
+      <div id="ocFicha" class="hide" style="margin-top:14px">
+        <div class="alert info" id="ocFichaTxt"></div>
+        <div class="sub" style="margin-top:0">
+          <div class="card-h"><h3>Qué se va a facturar</h3><span class="spacer"></span>
+            <span class="small muted">esto es lo que verá el proveedor en el correo</span></div>
+          <div class="row">
+            <label class="fld" style="flex:1;min-width:420px">Descripción / glosa de la factura
+              <input type="text" id="epGlosa" placeholder="CONSTRUCCION - Obras de Mitigacion Cierre EISTU - Ingenieria en Detalle"></label>
+            <label class="fld">Estado de pago<input type="text" id="epEp" style="width:110px" placeholder="EP_8"></label>
+            <label class="fld">Reference # (IR)<input type="text" id="epIr" style="width:130px" placeholder="IR415509"></label>
+          </div>
+          <div class="row">
+            <label class="fld">Monto base / contrato
+              <input type="text" id="epBase" class="num" style="width:155px" placeholder="5.781.360"></label>
+            <label class="fld">% a liberar
+              <input type="text" id="epPct" class="num" style="width:90px" placeholder="10"></label>
+            <button class="btn sm ghost" id="btnPctSaldo" title="Facturar todo el saldo que queda disponible en la OC">Todo el saldo</button>
+            <label class="fld">Neto a facturar
+              <input type="text" id="epNeto" class="num" style="width:155px" placeholder="578.136"></label>
+            <label class="fld">IVA
+              <select id="epIvaCond" style="width:160px">
+                <option value="afecta">19% IVA (FAE)</option>
+                <option value="exenta">Exenta de IVA (FAEX)</option>
+              </select></label>
+            <span class="small" id="epCalc" style="padding-bottom:8px"></span>
+          </div>
+        </div>
+        <details class="help" style="margin-top:12px" id="epDetDatos">
+          <summary>Datos que se tomaron de la orden de compra <span class="small muted">— corrígelos solo si hace falta</span></summary>
+          <div class="row">
+            <label class="fld">Proveedor
+              <select id="epProv" style="min-width:280px"><option value="">— elige del catálogo —</option></select></label>
+            <label class="fld">Vendor #<input type="text" id="epVendor" style="width:105px" placeholder="V024553"></label>
+            <label class="fld">Purchase Order #<input type="text" id="epOc" style="width:175px" placeholder="POCHI-002415"></label>
+            <label class="fld">Project Code #<input type="text" id="epProy" style="width:145px" placeholder="CHCRN25401"></label>
+            <label class="fld">Sede<select id="epSede" style="width:95px"></select></label>
+          </div>
+        </details>
+        <div class="row" style="margin-top:14px">
+          <button class="btn primary lg" id="btnEpAdd">Agregar y preparar el correo</button>
+          <button class="btn ghost" id="btnEpClear">Limpiar formulario</button>
+        </div>
+      </div>
+      <p class="small muted" id="ocVacio" style="margin:12px 2px 0">
+        Elige una orden de compra y la app trae el proveedor, el project code, la sede y el monto del contrato.
+        Tú solo marcas el % a liberar y si va con IVA o exenta.
+      </p>
+    </div>
+  </div>
+
+  </div><!-- /modoOc -->
+
+  <!-- --------- CARGA MASIVA --------- -->
+  <div id="modoMasiva" class="hide">
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Carga masiva de cuadros</h2>
+        <div class="d">Varios cuadros de una vez, desde el <b>Generador_EEPP.xlsx</b> o desde el texto de un correo que ya enviaste.</div></div>
+    </div>
+    <div class="body">
+    <div class="split">
+      <div>
+        <div class="drop" id="dropEepp">
+          <span class="ic">📊</span>
+          <b>Arrastra el Generador_EEPP.xlsx</b><br>
+          <span class="small">Varios archivos a la vez. Se leen todos los bloques de cada hoja.</span>
+        </div>
+        <input type="file" id="fileEepp" accept=".xlsx,.xlsm,.xls" multiple class="hide">
+      </div>
+      <div>
+        <label class="fld">…o pega el texto de un correo que ya enviaste
+          <textarea id="txtEepp" rows="6" placeholder="Estimados; Junto con saludar, adjunto cuadro de EEPP_08 para facturar según el detalle: ...&#10;Vendor # V024553&#10;Purchase Order # POCHI-002415&#10;Project Code # CHCRN25401&#10;Reference # IR415509&#10;MONTO NETO 578.136 ..."></textarea>
+        </label>
+        <button class="btn primary" id="btnParseTxt" style="margin-top:9px">Leer texto pegado</button>
+      </div>
+    </div>
+    </div>
+  </div>
+  </div><!-- /modoMasiva -->
+
+  <!-- --------- PLANILLA CONECTADA --------- -->
+  <div id="modoExcel" class="hide">
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Planilla Excel conectada</h2>
+        <div class="d">Elige tu planilla y la app reconoce las columnas sola. Después haces clic en una fila
+          y sus datos pasan al formulario para que los revises antes de agregarlos.</div></div>
+      <span class="spacer"></span>
+      <span class="small muted" id="xlEstado">ningún archivo conectado</span>
+    </div>
+    <div class="body">
+    <div class="row">
+      <button class="btn" id="btnXlConectar">Conectar Excel…</button>
+      <button class="btn ghost" id="btnXlRecargar" disabled title="Vuelve a leer el archivo conectado, con los cambios que hiciste en Excel">↻ Actualizar desde el archivo</button>
+      <input type="file" id="fileXl" accept=".xlsx,.xlsm,.xls,.csv" class="hide">
+      <span class="small muted">La app reconoce las columnas sola. Haces clic en una fila y sus datos pasan al formulario.</span>
+    </div>
+    <div id="xlConf" class="hide" style="margin-top:12px">
+      <div class="filtros" style="margin-bottom:11px">
+        <label class="fld">Qué contiene esta planilla
+          <select id="xlModo" style="min-width:230px">
+            <option value="eepp">Estados de pago a facturar</option>
+            <option value="oc">Órdenes de compra (export de Netsuite)</option>
+          </select></label>
+        <label class="fld">Hoja<select id="xlHoja" style="min-width:150px"></select></label>
+        <label class="fld">Fila de los títulos<input type="number" id="xlFilaHdr" min="1" value="1" style="width:85px"></label>
+        <span class="spacer"></span>
+        <button class="btn sm" id="btnXlBloques" title="Para archivos con el formato del Generador_EEPP">Leer como bloques EEPP</button>
+        <button class="btn sm primary" id="btnXlTodas">Agregar todas las filas</button>
+      </div>
+      <details class="help" id="xlMapDet">
+        <summary>Correspondencia de columnas <span class="small muted" id="xlMapResumen"></span></summary>
+        <div class="row" id="xlMap"></div>
+        <p class="small muted" style="margin:0">Si alguna columna quedó mal asignada, corrígela aquí. La correspondencia se guarda con la base para las próximas semanas.</p>
+      </details>
+      <div id="xlAlertas"></div>
+      <div class="tbl-wrap" style="max-height:340px">
+        <table id="tblXl"><thead></thead><tbody></tbody></table>
+      </div>
+      <p class="small muted" style="margin:9px 0 0">Se muestran solo las filas con datos suficientes (una glosa o un monto).
+        <b>→ Formulario</b> las lleva al formulario; <b>+</b> las agrega directo.</p>
+    </div>
+    </div>
+  </div>
+  </div><!-- /modoExcel -->
+  <!-- --------- estados de pago registrados --------- -->
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Estados de pago registrados</h2>
+        <div class="d">Marca las líneas que van en un mismo cuadro y genera el correo. Si eliges líneas de
+          varios proveedores, se arma un correo por cada uno.</div>
+      </div>
+      <span class="spacer"></span>
+      <span class="small muted" id="eeppResumen"></span>
+    </div>
+    <div class="body">
+      <div class="filtros" style="margin-bottom:12px">
+        <span class="small muted" id="epSelTxt">Ninguna línea seleccionada</span>
+        <span class="spacer"></span>
+        <button class="btn sm primary" id="btnEpCorreo">Generar correo al proveedor</button>
+        <button class="btn sm" id="btnEpEnviado">Marcar como enviado</button>
+        <button class="btn sm danger" id="btnDelEepp">Eliminar</button>
+      </div>
+      <div id="eeppAlerts"></div>
+      <div class="tbl-wrap" style="max-height:56vh">
+        <table id="tblEepp">
+          <thead>
+            <tr class="grupos"><th></th><th colspan="3">Situación</th><th colspan="3">Obra / imputación</th>
+              <th colspan="2">Proveedor</th><th colspan="2">Netsuite</th><th colspan="4">Montos</th><th colspan="2">Detalle</th></tr>
+            <tr>
+              <th style="width:26px"><input type="checkbox" id="chkAllEepp" title="Seleccionar todo"></th>
+              <th>Estado</th><th></th><th></th><th>Sede</th><th>Project code</th><th>OC</th><th>Vendor</th><th>Proveedor</th>
+              <th>Reference</th><th>EP</th><th class="num">Neto</th><th>IVA</th><th class="num">Monto IVA</th><th class="num">Total</th>
+              <th>Glosa</th><th>Factura</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="tbl-leyenda">
+        <i><span class="tag neutral">por enviar</span> falta mandar el correo al proveedor</i>
+        <i><span class="tag warn">esperando factura</span> el proveedor ya recibió el cuadro</i>
+        <i><span class="tag ok">facturado</span> la factura ya llegó y está en una nómina</i>
+        <i>✎ celda editable</i>
+      </div>
+    </div>
+  </div>
+
+  <!-- --------- lote --------- -->
+  <div class="card hide" id="cardLote">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Estados de pago en lote</h2>
+        <div class="d">Ajusta el porcentaje o el neto de cada orden y créalos todos juntos. Después se arma un correo por proveedor.</div>
+      </div>
+      <span class="spacer"></span>
+      <span class="small muted" id="loteInfo"></span>
+      <button class="btn primary" id="btnLoteCrear">Crear los estados de pago</button>
+      <button class="btn ghost" id="btnLoteCerrar">Descartar</button>
+    </div>
+    <div class="body">
+      <div id="loteAlertas"></div>
+      <div class="tbl-wrap" style="max-height:420px">
+        <table id="tblLote">
+          <thead>
+            <tr class="grupos"><th colspan="4">Orden de compra</th><th colspan="3">Contrato</th><th colspan="3">A facturar ahora</th><th colspan="2">Detalle</th></tr>
+            <tr><th>OC</th><th>Sede</th><th>Proveedor</th><th>EP</th>
+            <th class="num">Monto OC</th><th class="num">Saldo</th><th class="num">%</th>
+            <th class="num">Neto</th><th>IVA</th><th class="num">Total</th><th>Glosa</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- --------- correo al proveedor --------- -->
+  <div class="card hide" id="cardEpMail">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Correo al proveedor</h2>
+        <div class="d">Al copiar o abrir el correo, las líneas quedan marcadas como <i>enviadas</i> y pasan a esperar la factura.</div>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn primary" id="btnEpCopyRich">Copiar correo (con tabla)</button>
+      <button class="btn" id="btnEpCopyTxt">Copiar solo texto</button>
+      <button class="btn" id="btnEpMailto">Abrir en Outlook</button>
+      <button class="btn ghost" id="btnEpCerrar">Cerrar</button>
+    </div>
+    <div class="body">
+      <div class="row" style="margin-bottom:12px">
+        <label class="fld">Para<input type="text" id="epPara" style="width:280px" placeholder="correo@proveedor.cl"></label>
+        <label class="fld">Asunto<input type="text" id="epAsunto" style="width:430px"></label>
+        <label class="fld">Vencimiento (30 días)
+          <button type="button" class="fecha-btn" id="epVenc">—</button></label>
+        <span class="small muted" style="padding-bottom:8px" id="epMailInfo"></span>
+      </div>
+      <div id="epMailPreview"></div>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============ 2 · FACTURAS ============ -->
+<section class="panel" id="tab-facturas">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Paso 2 de 4</div>
+      <h1>Facturas recibidas</h1>
+      <p>Arrastra los PDF que van llegando. La app lee folio, fecha, RUT, OC, IR y montos, y los calza con el
+        estado de pago que estaba esperando. Todo lo que cargues aquí entra en la nómina en curso que aparece arriba.</p>
+    </div>
+    <div class="acts">
+      <button class="btn" id="btnAddFac">+ Ingresar una a mano</button>
+      <button class="btn primary" id="btnPickFac">Elegir archivos PDF…</button>
+    </div>
+  </div>
+
+  <div class="split g31">
+    <div class="card">
+      <div class="card-h">
+        <div class="hgroup">
+          <h2>Recepción de facturas</h2>
+          <div class="d">Los PDF no salen de tu computador: se leen dentro del navegador.</div>
+        </div>
+        <span class="spacer"></span>
+        <progress id="pdfProg" class="hide" max="100" value="0"></progress>
+        <span class="small muted" id="pdfProgTxt"></span>
+      </div>
+      <div class="body">
+        <div class="drop" id="dropFac">
+          <span class="ic">📥</span>
+          <b>Arrastra aquí los PDF de las facturas</b><br>
+          <span class="small">Varios a la vez, o una carpeta completa. Se leen folio, fecha, RUT, OC, IR, neto, IVA y total.</span>
+        </div>
+        <input type="file" id="fileFac" accept=".pdf" multiple class="hide">
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="hgroup">
+          <h2>Referencias IR desde Netsuite</h2>
+          <div class="d">El número IR no viene impreso en la factura: se pega desde el listado de recepciones.</div>
+        </div>
+      </div>
+      <div class="body">
+        <label class="fld"><textarea id="txtIr" rows="4" placeholder="POCUR-002558&#9;IR411886&#9;592.286&#10;POCMA-002304&#9;IR411887&#10;IR411888 POCHI-002668 315.885"></textarea>
+          <span class="hint">La app busca en cada línea una OC y un IR y los calza con las facturas cargadas. Si una OC tiene varias recepciones, usa el monto para desempatar.</span></label>
+        <div class="row" style="margin-top:10px">
+          <button class="btn primary" id="btnIr">Asignar referencias</button>
+          <span class="small" id="irMsg"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Facturas de esta nómina</h2>
+        <div class="d">Las celdas con lápiz (✎) se corrigen haciendo clic. La columna <b>Tipo</b> decide en qué tabla de la nómina cae la línea.</div>
+      </div>
+      <span class="spacer"></span>
+      <span class="small muted" id="facResumen"></span>
+    </div>
+    <div class="body">
+      <div class="filtros" style="margin-bottom:12px">
+        <label class="chk"><input type="checkbox" id="chkSoloProb"> ver solo las que tienen alerta</label>
+        <span class="spacer"></span>
+        <span class="small muted" id="facSelTxt">Ninguna seleccionada</span>
+        <button class="btn sm" id="btnMoverFac">Mover a otra nómina…</button>
+        <button class="btn sm danger" id="btnDelFac">Eliminar seleccionadas</button>
+      </div>
+      <div id="facAlerts"></div>
+      <div class="tbl-wrap" style="max-height:64vh">
+        <table id="tblFac">
+          <thead>
+            <tr class="grupos"><th></th><th colspan="2">Revisión</th><th colspan="4">Clasificación</th>
+              <th colspan="4">Documento del proveedor</th><th colspan="4">Montos</th><th colspan="3">Netsuite / notas</th></tr>
+            <tr>
+              <th style="width:26px"><input type="checkbox" id="chkAllFac" title="Seleccionar todo"></th>
+              <th>Control</th><th></th><th>Tipo</th><th>Sede</th><th>Proyecto / Cta.</th><th>OC</th>
+              <th>RUT</th><th>Proveedor</th><th>Fecha</th><th>Doc. N°</th>
+              <th class="num">Neto</th><th>IVA</th><th class="num">Monto IVA</th><th class="num">Total</th>
+              <th>Reference</th><th>Observaciones</th><th>Archivo</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="tbl-leyenda">
+        <i><span class="tag ok">ok</span> cuadra todo</i>
+        <i><span class="tag warn">revisar</span> falta un dato o hay que confirmarlo</i>
+        <i><span class="tag crit">error</span> no puede ir a finanzas así</i>
+        <i>📄 ver el documento original</i>
+        <i>✎ celda editable</i>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 3 · NÓMINA ============ -->
+<section class="panel" id="tab-nomina">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Paso 3 de 4</div>
+      <h1>Armar la nómina</h1>
+      <p>La nómina se identifica por su <b>fecha de envío</b>. Las facturas recibidas hasta el viernes van en esa
+        nómina; las que llegan desde el lunes, en la siguiente. Una misma factura no puede estar en dos nóminas.</p>
+    </div>
+    <div class="acts">
+      <button class="btn" id="btnXlsx">Exportar a Excel</button>
+      <button class="btn" id="btnCsv">Exportar CSV</button>
+      <button class="btn primary" id="btnIrCorreo">Ver el correo a finanzas</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Datos de esta nómina</h2>
+        <div class="d">La fecha es la identidad de la nómina: cámbiala solo si te equivocaste al crearla.</div>
+      </div>
+      <span class="spacer"></span>
+      <button class="btn" id="btnNomEnviada">Marcar como enviada</button>
+      <button class="btn ghost" id="btnNomReabrir">Reabrir</button>
+      <button class="btn danger sm" id="btnNomBorrar">Eliminar nómina</button>
+    </div>
+    <div class="body">
+      <div class="row mid">
+        <label class="fld">Fecha de la nómina
+          <button type="button" class="fecha-btn grande" id="nomFechaSel">—</button></label>
+        <button class="btn sm" id="btnNomViernes" style="margin-bottom:2px">Usar el viernes siguiente</button>
+        <label class="fld">Período contable<input type="text" id="nomPeriodoSel" style="width:175px" placeholder="Jul 2026"></label>
+        <label class="fld">Destinatario<input type="text" id="nomDestSel" style="width:150px" placeholder="Patricia"></label>
+        <span class="spacer"></span>
+        <span class="small sec" id="nomResumenTxt"></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="tiles" id="nomTiles"></div>
+  <div id="nomAlerts"></div>
+
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Facturas y boletas a contabilizar — Development CAPEX y Enhancement CAPEX</h2>
+        <div class="d">Es la primera tabla del correo a finanzas, en el mismo orden y con las mismas columnas.</div>
+      </div>
+    </div>
+    <div class="body"><div class="tbl-wrap" style="max-height:60vh"><table id="tblNomCapex"><thead></thead><tbody></tbody><tfoot></tfoot></table></div></div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup">
+        <h2>Maitenance</h2>
+        <div class="d">Segunda tabla del correo: mantención, imputada a cuenta contable en vez de project code.</div>
+      </div>
+    </div>
+    <div class="body"><div class="tbl-wrap" style="max-height:60vh"><table id="tblNomMant"><thead></thead><tbody></tbody><tfoot></tfoot></table></div></div>
+  </div>
+
+  <div class="split">
+    <div class="card">
+      <div class="card-h"><div class="hgroup"><h2>Detalle por sociedad</h2>
+        <div class="d">Es el cuadro final del correo, con el total por colegio.</div></div></div>
+      <div class="body"><div class="tbl-wrap" style="max-height:430px"><table id="tblSoc"><thead></thead><tbody></tbody><tfoot></tfoot></table></div></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div class="hgroup"><h2>Monto por colegio</h2>
+        <div class="d">Total a contabilizar, IVA incluido.</div></div></div>
+      <div class="body"><div class="barlist" id="socChart"></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ 4 · CORREO ============ -->
+<section class="panel" id="tab-correo">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Paso 4 de 4</div>
+      <h1>Correo a finanzas</h1>
+      <p>El correo ya está armado con las dos tablas y el resumen por sociedad. Cópialo y pégalo en Outlook:
+        el formato se mantiene. Después marca la nómina como enviada en el paso 3.</p>
+    </div>
+    <div class="acts">
+      <button class="btn primary" id="btnCopyRich">Copiar correo (con tablas)</button>
+      <button class="btn" id="btnCopyTxt">Copiar solo texto</button>
+      <button class="btn" id="btnMailto">Abrir en Outlook</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Vista previa</h2>
+        <div class="d">Tal como lo va a recibir finanzas.</div></div>
+      <span class="spacer"></span>
+      <label class="fld">Para<input type="text" id="mailPara" style="width:220px"></label>
+      <label class="fld">Asunto<input type="text" id="mailAsunto" style="width:400px"></label>
+    </div>
+    <div class="body"><div id="mailPreview"></div></div>
+  </div>
+</section>
+
+<!-- ============ BIBLIOTECA DE OC ============ -->
+<section class="panel" id="tab-oc">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Datos permanentes</div>
+      <h1>Biblioteca de órdenes de compra</h1>
+      <p>Todas las OC que la app ha visto, con lo que ya se liberó y el saldo que queda. Filtra por colegio,
+        selecciona varias y prepara sus estados de pago de una sola vez.</p>
+    </div>
+    <div class="acts">
+      <button class="btn" id="btnLibPdf">Cargar OC desde PDF…</button>
+      <button class="btn" id="btnLibXls">…desde Excel (Netsuite)</button>
+      <input type="file" id="fileLibPdf" accept=".pdf" multiple class="hide">
+      <input type="file" id="fileLibXls" accept=".xlsx,.xlsm,.xls,.csv" class="hide">
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Buscar una orden de compra</h2>
+        <div class="d">Empieza por el colegio: es la forma más rápida de llegar a una OC entre cientos.</div></div>
+      <span class="spacer"></span>
+      <span class="small muted" id="ocLibInfo"></span>
+    </div>
+    <div class="body">
+      <div class="chips" id="libSedes" style="margin-bottom:11px"></div>
+      <div class="filtros">
+        <label class="fld" style="flex:1;min-width:260px">Buscar
+          <input type="text" id="libBuscar" placeholder="OC, proveedor, project code, glosa…" autocomplete="off"></label>
+        <label class="fld">Proveedor<select id="libProv" style="min-width:220px"></select></label>
+        <label class="fld">Mostrar<select id="libEstado" style="width:180px">
+          <option value="saldo">Con saldo disponible</option>
+          <option value="todas">Todas</option>
+          <option value="agotadas">Sin saldo</option>
+          <option value="sinmonto">Sin monto registrado</option>
+        </select></label>
+        <label class="fld">Ordenar por<select id="libOrden" style="width:170px">
+          <option value="reciente">Más recientes</option>
+          <option value="saldo">Mayor saldo</option>
+          <option value="oc">Número de OC</option>
+          <option value="prov">Proveedor</option>
+        </select></label>
+      </div>
+      <div class="barra-acc" id="libLote" style="margin-top:11px;display:none">
+        <b class="small" id="libLoteTxt"></b>
+        <label class="fld">% a liberar en todas<input type="text" id="libPct" class="num" style="width:90px" placeholder="30"></label>
+        <button class="btn primary sm" id="btnLibLote">Preparar estados de pago</button>
+        <button class="btn ghost sm" id="btnLibNada">Quitar selección</button>
+      </div>
+      <div class="tbl-wrap" style="max-height:62vh;margin-top:11px">
+        <table id="tblLib">
+          <thead>
+            <tr class="grupos"><th></th><th colspan="4">Orden de compra</th><th colspan="4">Avance del contrato</th><th colspan="3">Actividad</th></tr>
+            <tr>
+              <th style="width:26px"><input type="checkbox" id="chkAllLib" title="Seleccionar todo lo visible"></th>
+              <th>OC</th><th>Sede</th><th>Proveedor</th><th>Project code / cta.</th>
+              <th class="num">Monto OC</th><th class="num">Liberado</th><th class="num">Saldo</th>
+              <th>Avance</th><th>Último EP</th><th>Glosa</th><th></th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="row mid" style="margin-top:11px">
+        <button class="btn ghost sm" id="btnLibMas">Mostrar más</button>
+        <span class="small muted" id="libPagina"></span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ HISTORIAL ============ -->
+<section class="panel" id="tab-historial">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Datos permanentes</div>
+      <h1>Historial de nóminas</h1>
+      <p>Cada nómina queda guardada con su fecha. Busca la fecha y ves todas las facturas que fueron en ella,
+        con su documento original. Esto es lo que impide que una factura se pague dos veces.</p>
+    </div>
+    <div class="acts">
+      <button class="btn" id="btnImportHist">Importar nómina anterior (texto)</button>
+      <button class="btn ghost" id="btnPurgarPdf" title="Quita los PDF guardados de las nóminas ya enviadas para reducir el tamaño de la base">Liberar espacio…</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Nóminas registradas</h2>
+        <div class="d">Haz clic en una fila para ver su detalle abajo.</div></div>
+      <span class="spacer"></span>
+      <label class="fld">Buscar<input type="text" id="histBuscar" placeholder="fecha, período, OC, proveedor, doc…" style="width:290px"></label>
+    </div>
+    <div class="body">
+      <div class="tbl-wrap" style="max-height:44vh">
+        <table id="tblHist">
+          <thead>
+            <tr class="grupos"><th colspan="3">Nómina</th><th colspan="4">Montos</th><th colspan="2">Envío</th></tr>
+            <tr><th>Fecha</th><th>Estado</th><th>Período</th><th class="num">Líneas</th>
+            <th class="num">CAPEX</th><th class="num">Mantención</th><th class="num">Total</th><th>Enviada</th><th></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div id="histImport" class="hide sub">
+        <div class="card-h"><h3>Importar una nómina anterior</h3><span class="spacer"></span>
+          <span class="small muted">alimenta la biblioteca de OC y el control de duplicados</span></div>
+        <label class="fld">Pega la tabla de la nómina, tal como sale del correo o del Excel
+          <textarea id="txtHist" rows="7" placeholder="Pega aquí las filas de la nómina"></textarea>
+        </label>
+        <div class="row" style="margin-top:10px">
+          <label class="fld">Fecha de esa nómina
+            <button type="button" class="fecha-btn" id="histFecha">elegir fecha…</button></label>
+          <button class="btn primary" id="btnDoImportHist">Importar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2 id="histDetTitulo">Facturas de la nómina</h2>
+        <div class="d">📄 abre el documento original que se cargó en su momento.</div></div>
+      <span class="spacer"></span>
+      <span class="small muted" id="histDetInfo"></span>
+    </div>
+    <div class="body">
+      <div class="tbl-wrap" style="max-height:56vh">
+        <table id="tblHistDet"><thead>
+          <tr class="grupos"><th colspan="2">Origen</th><th colspan="4">Clasificación</th><th colspan="4">Documento</th><th colspan="2">Montos</th></tr>
+          <tr><th>Documento</th><th>Nómina</th><th>Tipo</th><th>Sede</th><th>Proyecto / Cta.</th><th>OC</th>
+          <th>Proveedor</th><th>Fecha</th><th>Doc. N°</th><th class="num">Neto</th><th class="num">Total</th><th>Reference</th></tr>
+        </thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ CATÁLOGOS ============ -->
+<section class="panel" id="tab-catalogos">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Datos permanentes</div>
+      <h1>Sedes, proveedores y OC conocidas</h1>
+      <p>Son los datos que la app usa para reconocer todo sola: el RUT del colegio define la sede, el RUT del
+        proveedor define su nombre y código V, y las OC completan los datos que las facturas no imprimen.</p>
+    </div>
+  </div>
+  <div class="split">
+    <div class="card">
+      <div class="card-h">
+        <div class="hgroup"><h2>Sociedades / sedes</h2>
+          <div class="d">El RUT del colegio que aparece en la factura define la sede. El prefijo de OC es la segunda comprobación.</div></div>
+        <span class="spacer"></span>
+        <button class="btn sm" id="btnAddSoc">+ Agregar</button>
+      </div>
+      <div class="body">
+        <div class="tbl-wrap" style="max-height:520px">
+          <table id="tblCatSoc"><thead><tr><th>Sede</th><th>RUT sociedad</th><th>Nombre</th><th>Prefijo OC</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-h">
+        <div class="hgroup"><h2>Proveedores</h2>
+          <div class="d">Se completa solo a medida que llegan facturas. El correo es el que se usa para enviar los cuadros de pago.</div></div>
+        <span class="spacer"></span>
+        <button class="btn sm" id="btnAddProv">+ Agregar</button>
+      </div>
+      <div class="body">
+        <div class="tbl-wrap" style="max-height:520px">
+          <table id="tblCatProv"><thead><tr><th>RUT</th><th>Código</th><th>Nombre</th><th>Correo</th><th>Contacto</th><th>Tipo habitual</th><th>Cta. contable</th><th></th></tr></thead><tbody></tbody></table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Órdenes de compra conocidas</h2>
+        <div class="d">Se alimenta del export de Netsuite, de las nóminas anteriores y de las facturas que sí traen la OC.
+          También completa la OC en las facturas de mantención que no la imprimen (ELEMONT, IOTIND y similares).</div></div>
+      <span class="spacer"></span>
+      <button class="btn sm ghost" id="btnIrLib2">Ver en la biblioteca</button>
+    </div>
+    <div class="body">
+      <div class="tbl-wrap" style="max-height:460px">
+        <table id="tblCatOc"><thead><tr><th>OC</th><th>RUT proveedor</th><th>Proveedor</th><th>Sede</th><th>Project code</th><th class="num">Monto OC</th><th class="num">Liberado</th><th class="num">Saldo</th><th>Cta. contable</th><th>Glosa</th><th>Visto</th><th></th></tr></thead><tbody></tbody></table>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+</div><!-- /mainwrap -->
+</div><!-- /app -->
+
+<div id="calPop" class="hide">
+  <div class="cal-top">
+    <button class="btn sm ghost" id="calAntA" title="Año anterior">«</button>
+    <button class="btn sm ghost" id="calAnt" title="Mes anterior">‹</button>
+    <span class="t" id="calTitulo"></span>
+    <button class="btn sm ghost" id="calSig" title="Mes siguiente">›</button>
+    <button class="btn sm ghost" id="calSigA" title="Año siguiente">»</button>
+  </div>
+  <div class="cal-grid" id="calDias"></div>
+  <div class="cal-grid" id="calCuerpo"></div>
+  <div class="cal-pie" id="calPie"></div>
+</div>
+
+<div class="modal hide" id="modalMover">
+  <div class="box" style="max-width:560px">
+    <div class="card-h"><h2>Mover facturas a otra nómina</h2><span class="spacer"></span>
+      <span class="small muted" id="movInfo"></span></div>
+    <div class="body">
+      <div class="row">
+        <label class="fld" style="flex:1">Nómina de destino
+          <select id="movNom" style="width:100%"></select></label>
+      </div>
+      <div class="row">
+        <label class="fld">…o crear una nómina nueva con fecha
+          <button type="button" class="fecha-btn" id="movFecha">elegir fecha…</button></label>
+      </div>
+    </div>
+    <div class="pie">
+      <button class="btn primary" id="btnMovOk">Mover</button>
+      <button class="btn ghost" id="btnMovCancelar">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal hide" id="modalDoc">
+  <div class="box" style="max-width:1100px">
+    <div class="card-h">
+      <h2 id="docTitulo">Documento original</h2>
+      <span class="spacer"></span>
+      <button class="btn sm" id="docAnt">‹ anterior</button>
+      <span class="small mono" id="docPag" style="min-width:90px;text-align:center"></span>
+      <button class="btn sm" id="docSig">siguiente ›</button>
+      <button class="btn sm ghost" id="docMenos" title="Reducir">−</button>
+      <button class="btn sm ghost" id="docMas" title="Ampliar">+</button>
+      <button class="btn sm" id="docDescargar">Descargar</button>
+      <button class="btn sm ghost" id="docCerrar">Cerrar</button>
+    </div>
+    <div class="body">
+      <div id="docInfo" class="small muted" style="margin-bottom:9px"></div>
+      <div style="background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-m);padding:12px;max-height:72vh;overflow:auto;text-align:center">
+        <canvas id="docCanvas" style="max-width:100%;box-shadow:0 2px 12px rgba(0,0,0,.2);background:#fff"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal hide" id="modalFac">
+  <div class="box">
+    <div class="card-h"><h2 id="modalFacTitulo">Editar factura</h2><span class="spacer"></span>
+      <span class="small muted" id="modalFacInfo"></span></div>
+    <div class="body">
+      <div id="modalFacAlertas"></div>
+      <h3 style="margin-bottom:9px">Clasificación</h3>
+      <div class="row">
+        <label class="fld">Tipo
+          <select id="mfTipo" style="width:160px"><option value="CAPEX">CAPEX</option><option value="MANT">Mantención</option></select></label>
+        <label class="fld">Sede<select id="mfSede" style="width:105px"></select></label>
+        <label class="fld">Proyecto / cuenta contable<input type="text" id="mfProy" style="width:170px"></label>
+        <label class="fld">Orden de compra<input type="text" id="mfOc" style="width:180px"></label>
+        <label class="fld">Reference # (IR)<input type="text" id="mfIr" style="width:130px"></label>
+      </div>
+      <hr class="sep">
+      <h3 style="margin-bottom:9px">Documento del proveedor</h3>
+      <div class="row">
+        <label class="fld">RUT proveedor<input type="text" id="mfRut" style="width:140px"></label>
+        <label class="fld">Proveedor<select id="mfProv" style="min-width:300px"></select></label>
+        <label class="fld">Fecha de la factura<input type="text" id="mfFecha" style="width:130px" placeholder="dd/mm/aaaa"></label>
+        <label class="fld">Doc. N°<input type="text" id="mfDoc" style="width:120px"></label>
+        <label class="fld">Tipo doc.
+          <select id="mfExenta" style="width:145px"><option value="">FAE (19%)</option><option value="1">FAEX (exenta)</option></select></label>
+      </div>
+      <hr class="sep">
+      <h3 style="margin-bottom:9px">Montos</h3>
+      <div class="row">
+        <label class="fld">Neto<input type="text" id="mfNeto" class="num" style="width:155px"></label>
+        <label class="fld">IVA<input type="text" id="mfIva" class="num" style="width:145px"></label>
+        <label class="fld">Total<input type="text" id="mfTotal" class="num" style="width:155px"></label>
+        <button class="btn sm ghost" id="btnMfRecalc">Recalcular desde el neto</button>
+        <label class="fld">Nómina<select id="mfNom" style="min-width:240px"></select></label>
+      </div>
+      <div class="row">
+        <label class="fld" style="flex:1;min-width:420px">Observaciones
+          <input type="text" id="mfObs" placeholder="Aparece en la última columna de la nómina">
+          <span class="hint">Ej.: «Reclasificar esta factura a proyecto ABSLTD26401».</span></label>
+      </div>
+      <hr class="sep">
+      <div class="row mid">
+        <button class="btn" id="btnMfVerPdf">Ver documento original</button>
+        <button class="btn ghost" id="btnMfDescargar">Descargar PDF</button>
+        <span class="small muted" id="mfPdfInfo"></span>
+      </div>
+    </div>
+    <div class="pie">
+      <button class="btn primary" id="btnMfGuardar">Guardar cambios</button>
+      <button class="btn ghost" id="btnMfCancelar">Cancelar</button>
+      <span class="spacer"></span>
+      <button class="btn danger" id="btnMfEliminar">Eliminar esta factura</button>
+    </div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
