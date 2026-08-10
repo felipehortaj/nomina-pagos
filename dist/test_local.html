@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nómina de Pagos — Cognita Chile</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="../node_modules/pdfjs-dist/build/pdf.min.js"></script>
+<script src="../node_modules/xlsx/dist/xlsx.full.min.js"></script>
 <style>
 /* =========================================================================
    SISTEMA DE DISEÑO — versión liviana
@@ -547,7 +547,7 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
   </nav>
 
   <div class="pie">
-    <div class="lin"><span class="dirty-dot" title="Hay cambios sin guardar"></span><span id="pieGuardado">Base sin cambios</span></div>
+    <div class="lin"><span class="dirty-dot" title="Hay cambios sin respaldar en un .json (los datos igual se guardan solos en este navegador)"></span><span id="pieGuardado">Base sin cambios</span></div>
     <div class="lin" id="pesoBase"></div>
   </div>
 </aside>
@@ -562,8 +562,8 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
     <button data-dens="compacta">Compacta</button>
   </div>
   <div class="btngrp">
-    <button class="btn" id="btnLoadDb" title="Abrir un archivo .json guardado antes">Abrir base</button>
-    <button class="btn" id="btnSaveDb" title="Descarga el archivo .json con todo el historial">Guardar base</button>
+    <button class="btn" id="btnLoadDb" title="Abrir un respaldo .json (por ejemplo, para traer la base desde otro equipo)">Abrir base</button>
+    <button class="btn" id="btnSaveDb" title="Descarga un respaldo .json con todo el historial. Los datos ya se guardan solos en este navegador.">Guardar base</button>
   </div>
   <button class="btn ico ghost" id="btnAyuda" title="Mostrar u ocultar las explicaciones">?</button>
   <button class="btn ico ghost" id="btnTheme" title="Cambiar entre claro y oscuro">◐</button>
@@ -643,8 +643,10 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
             la app abre sola la nómina del viernes siguiente.</p>
         </div>
       </div>
-      <p class="small muted" style="margin:0">Nada se sube a internet: los PDF se leen dentro del navegador. Para no perder
-        el trabajo usa <b>Guardar base</b> (<kbd>Ctrl</kbd>+<kbd>S</kbd>): genera un <code>.json</code> con todo el historial.
+      <p class="small muted" style="margin:0">Nada se sube a internet: los PDF se leen dentro del navegador. Tus datos
+        <b>se guardan solos en este navegador</b>, así que al reabrir la app siguen ahí. De vez en cuando conviene
+        descargar un respaldo con <b>Guardar base</b> (<kbd>Ctrl</kbd>+<kbd>S</kbd>): un <code>.json</code> con todo el
+        historial, útil para llevar la base a otro equipo o recuperarla si limpias los datos del navegador.
         El botón <b>?</b> de arriba muestra u oculta las explicaciones de cada pantalla.</p>
     </details>
 
@@ -1531,7 +1533,7 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
    ========================================================================= */
 if (typeof pdfjsLib !== "undefined")
   pdfjsLib.GlobalWorkerOptions.workerSrc =
-    "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+    "../node_modules/pdfjs-dist/build/pdf.worker.min.js";
 
 /* ---------------- utilidades ---------------- */
 const $  = (s, r = document) => r.querySelector(s);
@@ -1726,16 +1728,136 @@ function dbNueva() {
     activa: n.id
   });
 }
+/* Reconstruye una base a partir de un objeto suelto (un .json abierto por el
+   usuario o lo recuperado del navegador). Devuelve la base ya preparada y cuántas
+   facturas venían del modelo antiguo (para avisar). */
+function dbDesdeObjeto(o) {
+  const base = dbNueva();
+  const nuevo = {
+    v: DB_VERSION,
+    meta: Object.assign({}, base.meta, o.meta || {}),
+    cat: {
+      soc: o.cat && o.cat.soc && o.cat.soc.length ? o.cat.soc : base.cat.soc,
+      prov: (o.cat && o.cat.prov) || [], oc: (o.cat && o.cat.oc) || [], mapasXl: (o.cat && o.cat.mapasXl) || []
+    },
+    eepp: o.eepp || [],
+    nominas: o.nominas || [],
+    activa: o.activa || "",
+    __facSuelta: Array.isArray(o.fac) ? o.fac : []            // bases del modelo anterior
+  };
+  const migradas = nuevo.__facSuelta.length;                 // antes de prepararDb: borra __facSuelta
+  return { db: prepararDb(nuevo), migradas };
+}
+
+/* ---------------- autoguardado en el navegador (IndexedDB) ----------------
+   La base se guarda sola en este navegador, así que al reabrir la app los datos
+   siguen ahí. El .json de «Guardar base» queda como respaldo para llevar la base
+   a otro equipo o recuperarla si el navegador borra sus datos.
+   Solo IndexedDB; nada del almacenamiento simple clave-valor (el build lo verifica). */
+const IDB_NOMBRE = "nominaPagos", IDB_STORE = "base", IDB_CLAVE = "actual";
+function idbDisponible() {
+  try { return typeof indexedDB !== "undefined" && !!indexedDB; } catch (e) { return false; }
+}
+function idbAbrir() {
+  return new Promise(res => {
+    if (!idbDisponible()) return res(null);
+    let req;
+    try { req = indexedDB.open(IDB_NOMBRE, 1); } catch (e) { return res(null); }
+    req.onupgradeneeded = () => { try { req.result.createObjectStore(IDB_STORE); } catch (e) {} };
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => res(null);
+    req.onblocked = () => res(null);
+  });
+}
+function idbGuardar(obj) {
+  return idbAbrir().then(bd => new Promise(res => {
+    if (!bd) return res(false);
+    try {
+      const tx = bd.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(obj, IDB_CLAVE);
+      tx.oncomplete = () => { bd.close(); res(true); };
+      tx.onerror = () => { bd.close(); res(false); };
+      tx.onabort = () => { bd.close(); res(false); };
+    } catch (e) { try { bd.close(); } catch (_) {} res(false); }
+  })).catch(() => false);
+}
+function idbLeer() {
+  return idbAbrir().then(bd => new Promise(res => {
+    if (!bd) return res(null);
+    try {
+      const tx = bd.transaction(IDB_STORE, "readonly");
+      const rq = tx.objectStore(IDB_STORE).get(IDB_CLAVE);
+      rq.onsuccess = () => { bd.close(); res(rq.result || null); };
+      rq.onerror = () => { bd.close(); res(null); };
+    } catch (e) { try { bd.close(); } catch (_) {} res(null); }
+  })).catch(() => null);
+}
+function idbBorrar() {
+  return idbAbrir().then(bd => new Promise(res => {
+    if (!bd) return res(false);
+    try {
+      const tx = bd.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).delete(IDB_CLAVE);
+      tx.oncomplete = () => { bd.close(); res(true); };
+      tx.onerror = () => { bd.close(); res(false); };
+    } catch (e) { try { bd.close(); } catch (_) {} res(false); }
+  })).catch(() => false);
+}
+
+let cargaManual = false;                 // el usuario abrió un .json o borró: no pisar con lo recuperado
+let autoTimer = null, autoPend = false;
+function programarAutoguardado() {
+  if (!idbDisponible() || !db) return;
+  autoPend = true;
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(autoguardarYa, 500);
+}
+function autoguardarYa() {
+  clearTimeout(autoTimer);
+  if (!idbDisponible() || !db || typeof snapshotBase !== "function") { autoPend = false; return Promise.resolve(); }
+  return idbGuardar(snapshotBase()).then(ok => {
+    autoPend = false;
+    if (ok) pieGuardado("navegador");
+  });
+}
+function pieGuardado(estado) {
+  const p = document.getElementById("pieGuardado");
+  if (!p) return;
+  if (!idbDisponible()) { p.textContent = dirty ? "Cambios sin guardar" : "Todo guardado"; return; }
+  p.textContent = estado === "guardando" ? "Guardando…"
+    : estado === "navegador" ? "Guardado en este navegador"
+    : "Todo guardado";
+}
+/* Recupera al abrir la base guardada en este navegador (si la hay y el usuario no
+   abrió ya un archivo a mano). Devuelve una promesa. */
+function restaurarDesdeNavegador() {
+  if (!idbDisponible()) return Promise.resolve(false);
+  return idbLeer().then(o => {
+    if (cargaManual || dirty || !o || !o.cat) return false;
+    db = dbDesdeObjeto(o).db;
+    aplicarMetaAlFormulario(); render(); setDirty(false);
+    const hayDatos = (o.nominas || []).some(n => (n.fac || []).length) || (o.eepp || []).length;
+    if (hayDatos) toast("Recuperé tus datos guardados en este navegador");
+    return true;
+  }).catch(() => false);
+}
+
 function setDirty(v = true) {
   dirty = v;
   document.body.classList.toggle("dirty", v);
-  const p = document.getElementById("pieGuardado");
-  if (p) p.textContent = v ? "Cambios sin guardar" : "Todo guardado";
   const b = document.getElementById("btnSaveDb");
-  if (b) b.classList.toggle("primary", v);   /* solo destaca si hay algo que guardar */
+  if (b) b.classList.toggle("primary", v);   /* destaca el respaldo .json cuando hay cambios nuevos */
+  if (v) { pieGuardado("guardando"); programarAutoguardado(); }
+  else pieGuardado("guardado");
 }
 window.addEventListener("beforeunload", e => {
-  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+  /* Con autoguardado no molestamos al cerrar; solo aseguramos el último cambio.
+     Si el navegador no soporta IndexedDB, volvemos al aviso de siempre. */
+  if (!idbDisponible()) { if (dirty) { e.preventDefault(); e.returnValue = ""; } return; }
+  if (autoPend) autoguardarYa();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && autoPend) autoguardarYa();
 });
 
 /* ---------------- catálogo: consultas ---------------- */
@@ -3992,8 +4114,8 @@ function renderTareas(e, pend, act) {
       d: "Para seguir cargando facturas, cambia arriba a la nómina del viernes siguiente." });
   }
   if (typeof dirty !== "undefined" && dirty) {
-    t.push({ n: "warn", b: "Hay cambios sin guardar", ir: "guardar", cta: "Guardar base",
-      d: "La app no guarda sola: descarga el archivo .json para no perder el trabajo de hoy." });
+    t.push({ n: "warn", b: "Conviene descargar un respaldo", ir: "guardar", cta: "Guardar base",
+      d: "Tus datos se guardan solos en este navegador. Para no depender de un solo equipo, descarga de vez en cuando el respaldo .json." });
   }
   cont.innerHTML = t.length ? t.map(tareaHtml).join("")
     : `<div class="vacio"><span class="ic">✓</span><b>No hay nada pendiente</b>
@@ -4128,7 +4250,7 @@ function lineasNomina(tipo) {
   return db.fac.filter(f => f.tipo === tipo).slice().sort(ordenNomina).map((f, i) => ({
     item: i + 1, sede: f.sede || "", proy: f.proy || "", oc: f.oc || "", rut: f.rut || "",
     prov: proveedorTxt(f.rut) || "", fecha: f.fecha || "", doc: f.doc ? docPrefijo(f) + " " + f.doc : "",
-    periodo: per, neto: f.neto, iva: f.iva, total: f.total,
+    periodo: f.periodo || per, neto: f.neto, iva: f.iva, total: f.total,
     cont: "NO", pag: "NO", ir: f.ir || "", obs: f.obs || "", _f: f
   }));
 }
@@ -4139,7 +4261,7 @@ function renderTablaNomina(sel, cols, filas) {
   const body = filas.map(r => `<tr data-id="${r._f.id}">
     <td class="num" style="white-space:nowrap">${r.item} <button class="btn sm ghost" data-facedit="${r._f.id}" title="Editar esta línea">✎</button>${botonDoc(r._f)}</td><td>${esc(r.sede)}</td><td class="mono">${esc(r.proy)}</td>
     <td class="mono">${esc(r.oc)}</td><td class="mono">${esc(r.rut)}</td><td class="small">${esc(r.prov)}</td>
-    <td class="mono">${esc(r.fecha)}</td><td class="mono">${esc(r.doc)}</td><td>${esc(r.periodo)}</td>
+    <td class="mono">${esc(r.fecha)}</td><td class="mono">${esc(r.doc)}</td><td class="edit" data-f="periodo" contenteditable>${esc(r.periodo)}</td>
     <td class="num">${nf(r.neto)}</td><td class="num">${nf(r.iva)}</td><td class="num">${nf(r.total)}</td>
     <td>${r.cont}</td><td>${r.pag}</td><td class="mono">${esc(r.ir)}</td>
     <td class="edit wrap small" data-f="obs" contenteditable>${esc(r.obs)}</td></tr>`).join("")
@@ -4407,15 +4529,20 @@ function bajar(blob, nombre) {
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
 }
-function guardarDb() {
+/* Copia limpia y desligada de la base viva, lista para guardar (respaldo .json o
+   autoguardado en el navegador). Se quita el texto crudo del PDF, que es transitorio. */
+function snapshotBase() {
   const copia = JSON.parse(JSON.stringify({
     v: DB_VERSION, meta: db.meta, cat: db.cat, eepp: db.eepp, nominas: db.nominas, activa: db.activa
   }));
   copia.nominas.forEach(n => (n.fac || []).forEach(f => { delete f.texto; }));
-  bajar(new Blob([JSON.stringify(copia, null, 1)], { type: "application/json" }),
+  return copia;
+}
+function guardarDb() {
+  bajar(new Blob([JSON.stringify(snapshotBase(), null, 1)], { type: "application/json" }),
     `NominaPagos_base_${(nominaActiva().fecha || "").replace(/-/g, "")}.json`);
   setDirty(false);
-  toast("Base guardada. Guárdala en tu carpeta y cárgala la próxima semana.");
+  toast("Respaldo .json descargado. Tus datos ya se guardan solos en este navegador; el .json sirve para llevarlos a otro equipo o recuperarlos.");
 }
 
 /* =========================================================================
@@ -4613,22 +4740,11 @@ $("#fileDb").addEventListener("change", async e => {
   try {
     const o = JSON.parse(await f.text());
     if (!o.cat) throw new Error("formato");
-    const base = dbNueva();
-    const nuevo = {
-      v: DB_VERSION,
-      meta: Object.assign({}, base.meta, o.meta || {}),
-      cat: {
-        soc: o.cat.soc?.length ? o.cat.soc : base.cat.soc,
-        prov: o.cat.prov || [], oc: o.cat.oc || [], mapasXl: o.cat.mapasXl || []
-      },
-      eepp: o.eepp || [],
-      nominas: o.nominas || [],
-      activa: o.activa || "",
-      __facSuelta: Array.isArray(o.fac) ? o.fac : []            // bases del modelo anterior
-    };
-    const migradas = nuevo.__facSuelta.length;
-    db = prepararDb(nuevo);
+    cargaManual = true;                                        // no pisar con lo recuperado del navegador
+    const { db: ndb, migradas } = dbDesdeObjeto(o);
+    db = ndb;
     aplicarMetaAlFormulario(); render(); setDirty(migradas > 0);
+    autoguardarYa();                                           // la base abierta pasa a ser la de este navegador
     toast(`Base cargada: ${db.nominas.length} nómina(s), ${todasLasFacturas().length} facturas`
       + (migradas ? ` · ${migradas} factura(s) del modelo anterior quedaron en la nómina del ${isoToCl(nominaActiva().fecha)}` : ""));
   } catch (err) { toast("No pude leer ese archivo: debe ser un .json guardado por esta app"); }
@@ -5555,7 +5671,9 @@ $("#btnMailto").addEventListener("click", () => {
 
 /* ---------- reiniciar ---------- */
 $("#btnReset").addEventListener("click", () => {
-  if (!confirm("Se borra todo lo cargado en esta sesión (facturas, EEPP y nóminas). ¿Seguir?")) return;
+  if (!confirm("Se borra todo: las facturas, EEPP y nóminas cargadas y también lo guardado en este navegador. ¿Seguir?")) return;
+  cargaManual = true;
+  idbBorrar();
   db = dbNueva(); aplicarMetaAlFormulario(); setDirty(false); render();
 });
 
@@ -5632,6 +5750,7 @@ db = dbNueva();
 aplicarMetaAlFormulario();
 render();
 setDirty(false);
+restaurarDesdeNavegador();          // recupera la base guardada en este navegador, si la hay
 </script>
 </body>
 </html>

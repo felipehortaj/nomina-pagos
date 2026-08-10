@@ -43,9 +43,13 @@ Un único archivo HTML sin instalación ni servidor: se abre desde el computador
 leen dentro del navegador, así que **ninguna factura sale del equipo**. Las librerías
 `pdf.js` (lectura de PDF) y `SheetJS` (Excel) se cargan desde CDN la primera vez.
 
-Los datos viven en memoria y se conservan exportando la **base**: un archivo `.json` con el
-historial completo de nóminas, la biblioteca de órdenes de compra y los catálogos. Se abre
-con «Abrir base» y se guarda con «Guardar base» (`Ctrl+S`).
+Los datos se **guardan solos en el navegador** (IndexedDB): al reabrir la app siguen ahí, sin
+tener que cargar nada a mano. Como respaldo —para llevar la base a otro equipo o recuperarla si
+el navegador borra sus datos— se puede descargar la **base** con «Guardar base» (`Ctrl+S`): un
+archivo `.json` con el historial completo de nóminas, la biblioteca de órdenes de compra y los
+catálogos, que se vuelve a cargar con «Abrir base». Ojo: el autoguardado queda atado a ese
+computador y navegador; si limpias los datos del navegador o abres la app desde otra ruta, se
+puede perder, por eso conviene descargar el respaldo `.json` de vez en cuando.
 
 ## Las pruebas
 

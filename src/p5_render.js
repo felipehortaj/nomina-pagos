@@ -259,8 +259,8 @@ function renderTareas(e, pend, act) {
       d: "Para seguir cargando facturas, cambia arriba a la nómina del viernes siguiente." });
   }
   if (typeof dirty !== "undefined" && dirty) {
-    t.push({ n: "warn", b: "Hay cambios sin guardar", ir: "guardar", cta: "Guardar base",
-      d: "La app no guarda sola: descarga el archivo .json para no perder el trabajo de hoy." });
+    t.push({ n: "warn", b: "Conviene descargar un respaldo", ir: "guardar", cta: "Guardar base",
+      d: "Tus datos se guardan solos en este navegador. Para no depender de un solo equipo, descarga de vez en cuando el respaldo .json." });
   }
   cont.innerHTML = t.length ? t.map(tareaHtml).join("")
     : `<div class="vacio"><span class="ic">✓</span><b>No hay nada pendiente</b>
@@ -395,7 +395,7 @@ function lineasNomina(tipo) {
   return db.fac.filter(f => f.tipo === tipo).slice().sort(ordenNomina).map((f, i) => ({
     item: i + 1, sede: f.sede || "", proy: f.proy || "", oc: f.oc || "", rut: f.rut || "",
     prov: proveedorTxt(f.rut) || "", fecha: f.fecha || "", doc: f.doc ? docPrefijo(f) + " " + f.doc : "",
-    periodo: per, neto: f.neto, iva: f.iva, total: f.total,
+    periodo: f.periodo || per, neto: f.neto, iva: f.iva, total: f.total,
     cont: "NO", pag: "NO", ir: f.ir || "", obs: f.obs || "", _f: f
   }));
 }
@@ -406,7 +406,7 @@ function renderTablaNomina(sel, cols, filas) {
   const body = filas.map(r => `<tr data-id="${r._f.id}">
     <td class="num" style="white-space:nowrap">${r.item} <button class="btn sm ghost" data-facedit="${r._f.id}" title="Editar esta línea">✎</button>${botonDoc(r._f)}</td><td>${esc(r.sede)}</td><td class="mono">${esc(r.proy)}</td>
     <td class="mono">${esc(r.oc)}</td><td class="mono">${esc(r.rut)}</td><td class="small">${esc(r.prov)}</td>
-    <td class="mono">${esc(r.fecha)}</td><td class="mono">${esc(r.doc)}</td><td>${esc(r.periodo)}</td>
+    <td class="mono">${esc(r.fecha)}</td><td class="mono">${esc(r.doc)}</td><td class="edit" data-f="periodo" contenteditable>${esc(r.periodo)}</td>
     <td class="num">${nf(r.neto)}</td><td class="num">${nf(r.iva)}</td><td class="num">${nf(r.total)}</td>
     <td>${r.cont}</td><td>${r.pag}</td><td class="mono">${esc(r.ir)}</td>
     <td class="edit wrap small" data-f="obs" contenteditable>${esc(r.obs)}</td></tr>`).join("")

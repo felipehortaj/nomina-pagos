@@ -201,16 +201,136 @@ function dbNueva() {
     activa: n.id
   });
 }
+/* Reconstruye una base a partir de un objeto suelto (un .json abierto por el
+   usuario o lo recuperado del navegador). Devuelve la base ya preparada y cuántas
+   facturas venían del modelo antiguo (para avisar). */
+function dbDesdeObjeto(o) {
+  const base = dbNueva();
+  const nuevo = {
+    v: DB_VERSION,
+    meta: Object.assign({}, base.meta, o.meta || {}),
+    cat: {
+      soc: o.cat && o.cat.soc && o.cat.soc.length ? o.cat.soc : base.cat.soc,
+      prov: (o.cat && o.cat.prov) || [], oc: (o.cat && o.cat.oc) || [], mapasXl: (o.cat && o.cat.mapasXl) || []
+    },
+    eepp: o.eepp || [],
+    nominas: o.nominas || [],
+    activa: o.activa || "",
+    __facSuelta: Array.isArray(o.fac) ? o.fac : []            // bases del modelo anterior
+  };
+  const migradas = nuevo.__facSuelta.length;                 // antes de prepararDb: borra __facSuelta
+  return { db: prepararDb(nuevo), migradas };
+}
+
+/* ---------------- autoguardado en el navegador (IndexedDB) ----------------
+   La base se guarda sola en este navegador, así que al reabrir la app los datos
+   siguen ahí. El .json de «Guardar base» queda como respaldo para llevar la base
+   a otro equipo o recuperarla si el navegador borra sus datos.
+   Solo IndexedDB; nada del almacenamiento simple clave-valor (el build lo verifica). */
+const IDB_NOMBRE = "nominaPagos", IDB_STORE = "base", IDB_CLAVE = "actual";
+function idbDisponible() {
+  try { return typeof indexedDB !== "undefined" && !!indexedDB; } catch (e) { return false; }
+}
+function idbAbrir() {
+  return new Promise(res => {
+    if (!idbDisponible()) return res(null);
+    let req;
+    try { req = indexedDB.open(IDB_NOMBRE, 1); } catch (e) { return res(null); }
+    req.onupgradeneeded = () => { try { req.result.createObjectStore(IDB_STORE); } catch (e) {} };
+    req.onsuccess = () => res(req.result);
+    req.onerror = () => res(null);
+    req.onblocked = () => res(null);
+  });
+}
+function idbGuardar(obj) {
+  return idbAbrir().then(bd => new Promise(res => {
+    if (!bd) return res(false);
+    try {
+      const tx = bd.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).put(obj, IDB_CLAVE);
+      tx.oncomplete = () => { bd.close(); res(true); };
+      tx.onerror = () => { bd.close(); res(false); };
+      tx.onabort = () => { bd.close(); res(false); };
+    } catch (e) { try { bd.close(); } catch (_) {} res(false); }
+  })).catch(() => false);
+}
+function idbLeer() {
+  return idbAbrir().then(bd => new Promise(res => {
+    if (!bd) return res(null);
+    try {
+      const tx = bd.transaction(IDB_STORE, "readonly");
+      const rq = tx.objectStore(IDB_STORE).get(IDB_CLAVE);
+      rq.onsuccess = () => { bd.close(); res(rq.result || null); };
+      rq.onerror = () => { bd.close(); res(null); };
+    } catch (e) { try { bd.close(); } catch (_) {} res(null); }
+  })).catch(() => null);
+}
+function idbBorrar() {
+  return idbAbrir().then(bd => new Promise(res => {
+    if (!bd) return res(false);
+    try {
+      const tx = bd.transaction(IDB_STORE, "readwrite");
+      tx.objectStore(IDB_STORE).delete(IDB_CLAVE);
+      tx.oncomplete = () => { bd.close(); res(true); };
+      tx.onerror = () => { bd.close(); res(false); };
+    } catch (e) { try { bd.close(); } catch (_) {} res(false); }
+  })).catch(() => false);
+}
+
+let cargaManual = false;                 // el usuario abrió un .json o borró: no pisar con lo recuperado
+let autoTimer = null, autoPend = false;
+function programarAutoguardado() {
+  if (!idbDisponible() || !db) return;
+  autoPend = true;
+  clearTimeout(autoTimer);
+  autoTimer = setTimeout(autoguardarYa, 500);
+}
+function autoguardarYa() {
+  clearTimeout(autoTimer);
+  if (!idbDisponible() || !db || typeof snapshotBase !== "function") { autoPend = false; return Promise.resolve(); }
+  return idbGuardar(snapshotBase()).then(ok => {
+    autoPend = false;
+    if (ok) pieGuardado("navegador");
+  });
+}
+function pieGuardado(estado) {
+  const p = document.getElementById("pieGuardado");
+  if (!p) return;
+  if (!idbDisponible()) { p.textContent = dirty ? "Cambios sin guardar" : "Todo guardado"; return; }
+  p.textContent = estado === "guardando" ? "Guardando…"
+    : estado === "navegador" ? "Guardado en este navegador"
+    : "Todo guardado";
+}
+/* Recupera al abrir la base guardada en este navegador (si la hay y el usuario no
+   abrió ya un archivo a mano). Devuelve una promesa. */
+function restaurarDesdeNavegador() {
+  if (!idbDisponible()) return Promise.resolve(false);
+  return idbLeer().then(o => {
+    if (cargaManual || dirty || !o || !o.cat) return false;
+    db = dbDesdeObjeto(o).db;
+    aplicarMetaAlFormulario(); render(); setDirty(false);
+    const hayDatos = (o.nominas || []).some(n => (n.fac || []).length) || (o.eepp || []).length;
+    if (hayDatos) toast("Recuperé tus datos guardados en este navegador");
+    return true;
+  }).catch(() => false);
+}
+
 function setDirty(v = true) {
   dirty = v;
   document.body.classList.toggle("dirty", v);
-  const p = document.getElementById("pieGuardado");
-  if (p) p.textContent = v ? "Cambios sin guardar" : "Todo guardado";
   const b = document.getElementById("btnSaveDb");
-  if (b) b.classList.toggle("primary", v);   /* solo destaca si hay algo que guardar */
+  if (b) b.classList.toggle("primary", v);   /* destaca el respaldo .json cuando hay cambios nuevos */
+  if (v) { pieGuardado("guardando"); programarAutoguardado(); }
+  else pieGuardado("guardado");
 }
 window.addEventListener("beforeunload", e => {
-  if (dirty) { e.preventDefault(); e.returnValue = ""; }
+  /* Con autoguardado no molestamos al cerrar; solo aseguramos el último cambio.
+     Si el navegador no soporta IndexedDB, volvemos al aviso de siempre. */
+  if (!idbDisponible()) { if (dirty) { e.preventDefault(); e.returnValue = ""; } return; }
+  if (autoPend) autoguardarYa();
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden" && autoPend) autoguardarYa();
 });
 
 /* ---------------- catálogo: consultas ---------------- */
