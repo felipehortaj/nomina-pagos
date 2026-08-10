@@ -135,15 +135,20 @@ function bajar(blob, nombre) {
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 400);
 }
-function guardarDb() {
+/* Copia limpia y desligada de la base viva, lista para guardar (respaldo .json o
+   autoguardado en el navegador). Se quita el texto crudo del PDF, que es transitorio. */
+function snapshotBase() {
   const copia = JSON.parse(JSON.stringify({
     v: DB_VERSION, meta: db.meta, cat: db.cat, eepp: db.eepp, nominas: db.nominas, activa: db.activa
   }));
   copia.nominas.forEach(n => (n.fac || []).forEach(f => { delete f.texto; }));
-  bajar(new Blob([JSON.stringify(copia, null, 1)], { type: "application/json" }),
+  return copia;
+}
+function guardarDb() {
+  bajar(new Blob([JSON.stringify(snapshotBase(), null, 1)], { type: "application/json" }),
     `NominaPagos_base_${(nominaActiva().fecha || "").replace(/-/g, "")}.json`);
   setDirty(false);
-  toast("Base guardada. Guárdala en tu carpeta y cárgala la próxima semana.");
+  toast("Respaldo .json descargado. Tus datos ya se guardan solos en este navegador; el .json sirve para llevarlos a otro equipo o recuperarlos.");
 }
 
 /* =========================================================================

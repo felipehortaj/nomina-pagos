@@ -99,22 +99,11 @@ $("#fileDb").addEventListener("change", async e => {
   try {
     const o = JSON.parse(await f.text());
     if (!o.cat) throw new Error("formato");
-    const base = dbNueva();
-    const nuevo = {
-      v: DB_VERSION,
-      meta: Object.assign({}, base.meta, o.meta || {}),
-      cat: {
-        soc: o.cat.soc?.length ? o.cat.soc : base.cat.soc,
-        prov: o.cat.prov || [], oc: o.cat.oc || [], mapasXl: o.cat.mapasXl || []
-      },
-      eepp: o.eepp || [],
-      nominas: o.nominas || [],
-      activa: o.activa || "",
-      __facSuelta: Array.isArray(o.fac) ? o.fac : []            // bases del modelo anterior
-    };
-    const migradas = nuevo.__facSuelta.length;
-    db = prepararDb(nuevo);
+    cargaManual = true;                                        // no pisar con lo recuperado del navegador
+    const { db: ndb, migradas } = dbDesdeObjeto(o);
+    db = ndb;
     aplicarMetaAlFormulario(); render(); setDirty(migradas > 0);
+    autoguardarYa();                                           // la base abierta pasa a ser la de este navegador
     toast(`Base cargada: ${db.nominas.length} nómina(s), ${todasLasFacturas().length} facturas`
       + (migradas ? ` · ${migradas} factura(s) del modelo anterior quedaron en la nómina del ${isoToCl(nominaActiva().fecha)}` : ""));
   } catch (err) { toast("No pude leer ese archivo: debe ser un .json guardado por esta app"); }
@@ -1041,7 +1030,9 @@ $("#btnMailto").addEventListener("click", () => {
 
 /* ---------- reiniciar ---------- */
 $("#btnReset").addEventListener("click", () => {
-  if (!confirm("Se borra todo lo cargado en esta sesión (facturas, EEPP y nóminas). ¿Seguir?")) return;
+  if (!confirm("Se borra todo: las facturas, EEPP y nóminas cargadas y también lo guardado en este navegador. ¿Seguir?")) return;
+  cargaManual = true;
+  idbBorrar();
   db = dbNueva(); aplicarMetaAlFormulario(); setDirty(false); render();
 });
 
@@ -1118,6 +1109,7 @@ db = dbNueva();
 aplicarMetaAlFormulario();
 render();
 setDirty(false);
+restaurarDesdeNavegador();          // recupera la base guardada en este navegador, si la hay
 </script>
 </body>
 </html>

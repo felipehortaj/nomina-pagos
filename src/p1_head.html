@@ -547,7 +547,7 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
   </nav>
 
   <div class="pie">
-    <div class="lin"><span class="dirty-dot" title="Hay cambios sin guardar"></span><span id="pieGuardado">Base sin cambios</span></div>
+    <div class="lin"><span class="dirty-dot" title="Hay cambios sin respaldar en un .json (los datos igual se guardan solos en este navegador)"></span><span id="pieGuardado">Base sin cambios</span></div>
     <div class="lin" id="pesoBase"></div>
   </div>
 </aside>
@@ -562,8 +562,8 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
     <button data-dens="compacta">Compacta</button>
   </div>
   <div class="btngrp">
-    <button class="btn" id="btnLoadDb" title="Abrir un archivo .json guardado antes">Abrir base</button>
-    <button class="btn" id="btnSaveDb" title="Descarga el archivo .json con todo el historial">Guardar base</button>
+    <button class="btn" id="btnLoadDb" title="Abrir un respaldo .json (por ejemplo, para traer la base desde otro equipo)">Abrir base</button>
+    <button class="btn" id="btnSaveDb" title="Descarga un respaldo .json con todo el historial. Los datos ya se guardan solos en este navegador.">Guardar base</button>
   </div>
   <button class="btn ico ghost" id="btnAyuda" title="Mostrar u ocultar las explicaciones">?</button>
   <button class="btn ico ghost" id="btnTheme" title="Cambiar entre claro y oscuro">◐</button>
@@ -643,8 +643,10 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
             la app abre sola la nómina del viernes siguiente.</p>
         </div>
       </div>
-      <p class="small muted" style="margin:0">Nada se sube a internet: los PDF se leen dentro del navegador. Para no perder
-        el trabajo usa <b>Guardar base</b> (<kbd>Ctrl</kbd>+<kbd>S</kbd>): genera un <code>.json</code> con todo el historial.
+      <p class="small muted" style="margin:0">Nada se sube a internet: los PDF se leen dentro del navegador. Tus datos
+        <b>se guardan solos en este navegador</b>, así que al reabrir la app siguen ahí. De vez en cuando conviene
+        descargar un respaldo con <b>Guardar base</b> (<kbd>Ctrl</kbd>+<kbd>S</kbd>): un <code>.json</code> con todo el
+        historial, útil para llevar la base a otro equipo o recuperarla si limpias los datos del navegador.
         El botón <b>?</b> de arriba muestra u oculta las explicaciones de cada pantalla.</p>
     </details>
 

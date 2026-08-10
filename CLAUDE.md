@@ -16,9 +16,10 @@ negocio (no técnico).
 
 - **Un solo archivo, sin dependencias locales.** Se abre con doble clic desde el
   computador del usuario (`file://`). pdf.js y SheetJS vienen por CDN.
-- **Prohibido `localStorage`, `sessionStorage` e `indexedDB`.** La persistencia es
-  exportar/importar el archivo `.json` de la base (botón «Guardar base»). El build falla
-  si aparece alguna de esas APIs.
+- **La base se autoguarda en el navegador con IndexedDB** (al reabrir la app los datos
+  siguen ahí; la carga es automática en el arranque). El `.json` de «Guardar base» queda
+  como **respaldo** para llevar la base a otro equipo o recuperarla si el navegador borra
+  sus datos. **Prohibido `localStorage` y `sessionStorage`**: el build falla si aparecen.
 - **Sin ids repetidos en el HTML** (el build también lo verifica).
 - Todo texto visible va en español, en tono de usuario de negocio, sin jerga técnica.
 

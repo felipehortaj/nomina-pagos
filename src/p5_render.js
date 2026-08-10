@@ -259,8 +259,8 @@ function renderTareas(e, pend, act) {
       d: "Para seguir cargando facturas, cambia arriba a la nómina del viernes siguiente." });
   }
   if (typeof dirty !== "undefined" && dirty) {
-    t.push({ n: "warn", b: "Hay cambios sin guardar", ir: "guardar", cta: "Guardar base",
-      d: "La app no guarda sola: descarga el archivo .json para no perder el trabajo de hoy." });
+    t.push({ n: "warn", b: "Conviene descargar un respaldo", ir: "guardar", cta: "Guardar base",
+      d: "Tus datos se guardan solos en este navegador. Para no depender de un solo equipo, descarga de vez en cuando el respaldo .json." });
   }
   cont.innerHTML = t.length ? t.map(tareaHtml).join("")
     : `<div class="vacio"><span class="ic">✓</span><b>No hay nada pendiente</b>

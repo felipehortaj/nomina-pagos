@@ -66,8 +66,8 @@ scripts.forEach((s, i) => {
   try { new Function(s); }
   catch (e) { console.error(`ERROR de sintaxis en el script ${i + 1}: ${e.message}`); process.exit(1); }
 });
-if (/localStorage|sessionStorage|indexedDB/.test(html)) {
-  console.error("ERROR: la app no puede usar almacenamiento del navegador (ver CLAUDE.md).");
+if (/localStorage|sessionStorage/.test(html)) {
+  console.error("ERROR: la app no puede usar localStorage ni sessionStorage (ver CLAUDE.md). El autoguardado usa IndexedDB.");
   process.exit(1);
 }
 const ids = [...html.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]);
