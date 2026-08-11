@@ -42,6 +42,57 @@ function detectarProyectos() {
   toast(nuevos ? `${nuevos} proyecto(s) detectado(s) de las OC y facturas` : "No hay proyectos nuevos por detectar");
 }
 
+/* ---------------- alta manual y carga masiva del maestro ---------------- */
+function agregarProyecto() {
+  db.proyectos = db.proyectos || [];
+  db.proyectos.unshift({ codigo: "", nombre: "", categoria: "", ppto: null, fy: fySeleccionado() || null });
+  setDirty(); render();
+  const c = document.querySelector('#tblProy tbody tr td[data-f="codigo"]'); if (c) c.focus();
+}
+function borrarProyecto(i) {
+  const p = (db.proyectos || [])[i]; if (!p) return;
+  if (!confirm(`Quitar el proyecto ${p.codigo || "(sin código)"} de la lista? No borra sus OC ni facturas, solo el presupuesto y la categoría cargados acá.`)) return;
+  db.proyectos.splice(i, 1); setDirty(); render();
+}
+function normCategoria(s) {
+  const u = up(s || ""); if (!u) return "";
+  if (u.includes("ENHANCE")) return "ENHANCEMENT";
+  if (u.includes("DEVELOP") || u.includes("CAPEX")) return "DEVELOPMENT CAPEX";
+  if (u.includes("MANTEN") || u.includes("MAINTEN")) return "MANTENCIÓN";
+  if (u.includes("GASTO")) return "GASTOS";
+  return CATEGORIAS.find(c => up(c) === u) || "";
+}
+function parseFyTxt(s) {
+  if (!s) return null; const m = String(s).match(/(\d{2,4})/); if (!m) return null;
+  let y = +m[1]; if (y < 100) y = 2000 + y; return y;
+}
+function parsearProyectos(txt) {
+  const res = [];
+  String(txt || "").split(/\r?\n/).forEach(l => {
+    if (!l.trim()) return;
+    const c = l.split(/\t|;/).map(x => x.trim());
+    if (/^(c[oó]d|code)/i.test(c[0] || "")) return;             // encabezado
+    const codigo = (c[0] || "").trim(); if (!codigo) return;
+    res.push({ codigo, nombre: c[1] || "", categoria: normCategoria(c[2] || ""), ppto: toNum(c[3] || "") || null, fy: parseFyTxt(c[4] || "") });
+  });
+  return res;
+}
+function cargarPegarProy() {
+  const filas = parsearProyectos(document.getElementById("pegarProyTxt").value);
+  if (!filas.length) { toast("No reconocí filas. Pega: Código, Nombre, Categoría, Presupuesto, Año (tab o ; entre columnas)"); return; }
+  db.proyectos = db.proyectos || [];
+  let creados = 0, actualizados = 0;
+  filas.forEach(f => {
+    const p = db.proyectos.find(x => up(x.codigo) === up(f.codigo));
+    if (p) { if (f.nombre) p.nombre = f.nombre; if (f.categoria) p.categoria = f.categoria; if (f.ppto != null) p.ppto = f.ppto; if (f.fy) p.fy = f.fy; actualizados++; }
+    else { db.proyectos.push({ codigo: f.codigo, nombre: f.nombre, categoria: f.categoria, ppto: f.ppto, fy: f.fy }); creados++; }
+  });
+  setDirty(); render();
+  document.getElementById("modalPegarProy").classList.add("hide");
+  document.getElementById("pegarProyTxt").value = "";
+  toast(`Proyectos cargados: ${creados} nuevo(s), ${actualizados} actualizado(s)`);
+}
+
 /* ---------------- facturas y agregación ---------------- */
 function facturasDeOc(ocNum) {
   const out = [];
@@ -122,7 +173,7 @@ function renderProyectos() {
     const optFy = setFy.map(y => `<option value="${y}"${y === fyp ? " selected" : ""}>${fyLabel(y)}</option>`).join("");
     const sobre = p.ppto && d.comprometido > p.ppto;
     return `<tr data-i="${i}" data-cod="${esc(p.codigo)}">
-      <td class="mono">${esc(p.codigo)}</td>
+      <td class="mono edit" data-f="codigo" contenteditable>${esc(p.codigo)}</td>
       <td class="edit" data-f="nombre" contenteditable>${esc(p.nombre || "")}</td>
       <td><select data-f="categoria">${optCat}</select></td>
       <td><select data-f="fy">${optFy || `<option value="">—</option>`}</select></td>
@@ -132,8 +183,9 @@ function renderProyectos() {
       <td class="num${sobre ? " neg" : ""}">${p.ppto ? nf(d.saldoDisp) : "—"}</td>
       <td style="white-space:nowrap">
         <button class="btn sm ghost" data-verproy="${esc(p.codigo)}" title="Ver la hoja del proyecto en pantalla">Ver</button>
-        <button class="btn sm" data-exportproy="${esc(p.codigo)}" title="Descargar la hoja de este proyecto en Excel">Excel</button></td></tr>`;
-  }).join("") || `<tr><td colspan="9" class="muted" style="padding:14px">Aún no hay proyectos${fyActivo ? " en " + fyLabel(fyActivo) : ""}. Usa «Detectar proyectos» para traerlos de las OC y las facturas.</td></tr>`;
+        <button class="btn sm" data-exportproy="${esc(p.codigo)}" title="Descargar la hoja de este proyecto en Excel">Excel</button>
+        <button class="btn sm ghost" data-delproy="${i}" title="Quitar este proyecto">✕</button></td></tr>`;
+  }).join("") || `<tr><td colspan="9" class="muted" style="padding:14px">Aún no hay proyectos${fyActivo ? " en " + fyLabel(fyActivo) : ""}. Usa «Agregar proyecto», «Pegar lista» o «Detectar proyectos».</td></tr>`;
 }
 
 /* ---------------- eventos ---------------- */
@@ -164,9 +216,20 @@ if (document.getElementById("btnDetectarProy")) {
   tp.addEventListener("click", e => {
     const v = e.target.closest && e.target.closest("[data-verproy]");
     const x = e.target.closest && e.target.closest("[data-exportproy]");
-    if (v) verHojaProyecto(v.dataset.verproy);
-    else if (x) exportarHojaProyecto(x.dataset.exportproy);
+    const d = e.target.closest && e.target.closest("[data-delproy]");
+    if (v && v.dataset.verproy) verHojaProyecto(v.dataset.verproy);
+    else if (x && x.dataset.exportproy) exportarHojaProyecto(x.dataset.exportproy);
+    else if (d) borrarProyecto(+d.dataset.delproy);
   });
+
+  const bAdd = document.getElementById("btnAgregarProy");
+  if (bAdd) bAdd.addEventListener("click", agregarProyecto);
+  const bPeg = document.getElementById("btnPegarProy");
+  if (bPeg) bPeg.addEventListener("click", () => document.getElementById("modalPegarProy").classList.remove("hide"));
+  const cerrarPeg = () => document.getElementById("modalPegarProy").classList.add("hide");
+  if (document.getElementById("pegarProyCerrar")) document.getElementById("pegarProyCerrar").addEventListener("click", cerrarPeg);
+  if (document.getElementById("modalPegarProy")) document.getElementById("modalPegarProy").addEventListener("click", e => { if (e.target.id === "modalPegarProy") cerrarPeg(); });
+  if (document.getElementById("pegarProyCargar")) document.getElementById("pegarProyCargar").addEventListener("click", cargarPegarProy);
 
   // modal de vista previa
   const cerrar = () => document.getElementById("modalProy").classList.add("hide");
