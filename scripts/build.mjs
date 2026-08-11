@@ -29,6 +29,7 @@ const PARTES = [
   "pB_editar.js",      // edición de facturas y visor de documentos
   "pC_biblioteca.js",  // biblioteca de OC y creación en lote
   "pD_fecha.js",       // calendario en español
+  "pE_proyectos.js",   // proyectos, presupuesto y exportación de la hoja de control
   "p5_render.js",      // pintado de toda la interfaz
   "p6_mail.js",        // correo a finanzas, exportaciones, guardar base
   "p7_events.js"       // eventos: la app se conecta acá
@@ -56,7 +57,7 @@ fs.writeFileSync(path.join(DIST, "Nomina_Pagos.html"), html);
 /* --- versión para pruebas: librerías locales en vez de CDN --- */
 const local = html
   .replace("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "../node_modules/pdfjs-dist/build/pdf.min.js")
-  .replace("https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js", "../node_modules/xlsx/dist/xlsx.full.min.js")
+  .replace("https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js", "../node_modules/xlsx-js-style/dist/xlsx.bundle.js")
   .replace("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js", "../node_modules/pdfjs-dist/build/pdf.worker.min.js");
 fs.writeFileSync(path.join(DIST, "test_local.html"), local);
 

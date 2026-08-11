@@ -737,6 +737,39 @@
     </div>
   </div>
 </section>
+
+<!-- ============ PROYECTOS Y PRESUPUESTO ============ -->
+<section class="panel" id="tab-proyectos">
+  <div class="page-h">
+    <div class="ttl">
+      <div class="eyebrow">Control presupuestario</div>
+      <h1>Proyectos y presupuesto</h1>
+      <p>Cada proyecto tiene su código de Cognita, un presupuesto aprobado y una categoría. La app cruza sus órdenes
+        de compra y las facturas ya cargadas para mostrarte lo comprometido, lo facturado y el saldo, y exporta la
+        hoja de control de cada proyecto en Excel, en el formato de tu libro anual.</p>
+    </div>
+    <span class="spacer"></span>
+    <button class="btn" id="btnDetectarProy" title="Trae los códigos de proyecto que aparecen en las OC y las facturas">Detectar proyectos</button>
+  </div>
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Proyectos</h2>
+        <div class="d">Escribe el presupuesto y elige la categoría de cada proyecto. Comprometido, facturado y saldo se calculan solos desde las OC y las facturas.</div></div>
+    </div>
+    <div class="body">
+      <div class="tbl-wrap" style="max-height:600px">
+        <table id="tblProy">
+          <thead><tr>
+            <th>Código</th><th>Nombre</th><th>Categoría</th>
+            <th class="num">Presupuesto</th><th class="num">Comprometido</th><th class="num">Facturado</th><th class="num">Saldo</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="hint">El botón <b>Excel</b> de cada fila descarga su hoja de proyecto (bloque de presupuesto + OC → facturas → saldo), lista para revisar o pegar en tu libro anual.</p>
+    </div>
+  </div>
+</section>
 </main>
 </div><!-- /mainwrap -->
 </div><!-- /app -->

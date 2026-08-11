@@ -12,6 +12,6 @@
   "devDependencies": {
     "playwright": "^1.47.0",
     "pdfjs-dist": "3.11.174",
-    "xlsx": "0.18.5"
+    "xlsx-js-style": "1.2.0"
   }
 }

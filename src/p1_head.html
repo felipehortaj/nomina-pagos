@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nómina de Pagos — Cognita Chile</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 /* =========================================================================
    SISTEMA DE DISEÑO — versión liviana
@@ -541,6 +541,9 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
     <button data-tab="historial">
       <span class="ico"><svg><use href="#i-hist"/></svg></span><span class="tx">Historial</span><span class="pill" id="pillHist">0</span>
     </button>
+    <button data-tab="proyectos">
+      <span class="ico"><svg><use href="#i-oc"/></svg></span><span class="tx">Proyectos y presupuesto</span><span class="pill" id="pillProy">0</span>
+    </button>
     <button data-tab="catalogos">
       <span class="ico"><svg><use href="#i-cat"/></svg></span><span class="tx">Sedes y proveedores</span>
     </button>
@@ -583,8 +586,8 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
 <main>
 <div id="libAlert" class="alert crit hide">
   <b>No pude cargar las librerías de lectura de PDF y Excel.</b>
-  Esta app las toma de <code>cdnjs.cloudflare.com</code> la primera vez que la abres. Si tu red corporativa lo bloquea,
-  pídele a TI que habilite ese dominio, o ábrela una vez desde una red sin restricción.
+  Esta app las toma de <code>cdnjs.cloudflare.com</code> y <code>cdn.jsdelivr.net</code> la primera vez que la abres. Si tu red
+  corporativa los bloquea, pídele a TI que habilite esos dominios, o ábrela una vez desde una red sin restricción.
 </div>
 
 <!-- ============ PANEL ============ -->
