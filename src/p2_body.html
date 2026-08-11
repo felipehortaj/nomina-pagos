@@ -749,6 +749,9 @@
         hoja de control de cada proyecto en Excel, en el formato de tu libro anual.</p>
     </div>
     <span class="spacer"></span>
+    <label class="fld">Año fiscal <select id="selFyProy" style="min-width:120px"></select></label>
+    <button class="btn" id="btnVerResumen" title="Ver el resumen del año con el flujo de caja por mes">Ver resumen</button>
+    <button class="btn" id="btnExportLibro" title="Descargar en un solo Excel todos los proyectos de ese año fiscal, con su hoja resumen">Descargar libro del año</button>
     <button class="btn" id="btnDetectarProy" title="Trae los códigos de proyecto que aparecen en las OC y las facturas">Detectar proyectos</button>
   </div>
   <div class="card">
@@ -760,7 +763,7 @@
       <div class="tbl-wrap" style="max-height:600px">
         <table id="tblProy">
           <thead><tr>
-            <th>Código</th><th>Nombre</th><th>Categoría</th>
+            <th>Código</th><th>Nombre</th><th>Categoría</th><th>Año</th>
             <th class="num">Presupuesto</th><th class="num">Comprometido</th><th class="num">Facturado</th><th class="num">Saldo</th><th></th>
           </tr></thead>
           <tbody></tbody>
@@ -881,6 +884,19 @@
       <button class="btn ghost" id="btnMfCancelar">Cancelar</button>
       <span class="spacer"></span>
       <button class="btn danger" id="btnMfEliminar">Eliminar esta factura</button>
+    </div>
+  </div>
+</div>
+<div class="modal hide" id="modalProy">
+  <div class="box" style="max-width:1200px">
+    <div class="card-h">
+      <h2 id="proyTitulo">Hoja de proyecto</h2>
+      <span class="spacer"></span>
+      <button class="btn sm" id="proyExcelDesde">Descargar Excel</button>
+      <button class="btn sm ghost" id="proyCerrar">Cerrar</button>
+    </div>
+    <div class="body">
+      <div id="proyPreview" style="max-height:74vh;overflow:auto;background:#fff;padding:14px;border:1px solid var(--border);border-radius:var(--r-m)"></div>
     </div>
   </div>
 </div>
