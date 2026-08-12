@@ -493,27 +493,31 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
   main{padding:16px 14px 60px}
 }
 
-/* ===== Estilo de la pestaña «Proyectos» — acento azul-violeta tipo Stripe
-   (excepción al diseño liviano, pedida por el usuario). Todo acotado a
-   #tab-proyectos para no afectar el resto de la app. ===== */
-#tab-proyectos{ --pz:#635BFF; --pz-grad:linear-gradient(105deg,#4F7DF0,#635BFF 40%,#3E8EF7 70%,#21D4FD) }
-#tab-proyectos .proy-hero{ background:var(--pz-grad); color:#fff; border-radius:14px; padding:22px 26px; margin-bottom:14px; box-shadow:0 12px 30px -16px rgba(53,74,209,.6) }
-#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.85) }
-#tab-proyectos .proy-hero h1{ margin:8px 0 0; color:#fff; font-size:clamp(24px,3vw,34px); font-weight:700; letter-spacing:-.02em; line-height:1.08 }
-#tab-proyectos .proy-hero .lede{ margin:9px 0 0; color:rgba(255,255,255,.92); max-width:60ch }
-#tab-proyectos .proy-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:14px }
+/* ===== Estilo de la pestaña «Proyectos» — institucional/bancario (aprobado por el
+   usuario). Acotado a #tab-proyectos y usando los tokens de tema de la app, así
+   responde en claro y oscuro. ===== */
+#tab-proyectos .proy-hero{ background:var(--surface-1); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:var(--r-m); padding:13px 18px; margin-bottom:12px }
+#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted) }
+#tab-proyectos .proy-hero h1{ margin:4px 0 0; color:var(--text-primary); font-size:21px; font-weight:600; letter-spacing:-.01em }
+#tab-proyectos .proy-hero .lede{ margin:5px 0 0; color:var(--text-secondary); font-size:13px; max-width:82ch }
+#tab-proyectos .proy-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:12px }
 #tab-proyectos .proy-tools .spacer{ flex:1 }
-#tab-proyectos .btn.primary{ background:var(--pz); border-color:var(--pz); color:#fff }
-#tab-proyectos .btn.primary:hover{ filter:brightness(1.05) }
-#tab-proyectos select.proy-cat{ border-radius:999px; padding:4px 12px; font-size:12px; font-weight:650; border:1px solid var(--border); background:var(--surface-2); cursor:pointer }
-#tab-proyectos select.proy-cat.cat-capex{ color:#635BFF; background:rgba(99,91,255,.13); border-color:transparent }
-#tab-proyectos select.proy-cat.cat-enh{ color:#0E9F6E; background:rgba(16,185,129,.15); border-color:transparent }
-#tab-proyectos select.proy-cat.cat-mant{ color:#B07D12; background:rgba(214,165,20,.18); border-color:transparent }
-#tab-proyectos select.proy-cat.cat-gasto{ color:var(--text-secondary); background:rgba(100,116,139,.16); border-color:transparent }
-#tab-proyectos .proy-adv{ display:flex; align-items:center; gap:8px; min-width:118px }
-#tab-proyectos .proy-bar{ flex:1; height:6px; border-radius:99px; background:var(--surface-3); overflow:hidden }
-#tab-proyectos .proy-bar>i{ display:block; height:100%; background:var(--pz); border-radius:99px }
-#tab-proyectos .proy-adv b{ font-size:12px; font-weight:700; min-width:32px; text-align:right; color:var(--text-primary) }
+#tab-proyectos .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff }
+#tab-proyectos .proy-ribbon{ display:grid; grid-template-columns:repeat(4,1fr); background:var(--surface-1); border:1px solid var(--border); border-radius:var(--r-m); margin-bottom:12px; overflow:hidden }
+#tab-proyectos .proy-ribbon .cell{ padding:11px 16px; border-left:1px solid var(--border) }
+#tab-proyectos .proy-ribbon .cell:first-child{ border-left:none; box-shadow:inset 3px 0 0 var(--accent) }
+#tab-proyectos .proy-ribbon .k{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); font-weight:700 }
+#tab-proyectos .proy-ribbon .v{ font-size:18px; font-weight:700; color:var(--text-primary); margin-top:3px; letter-spacing:-.01em; font-variant-numeric:tabular-nums }
+@media(max-width:760px){ #tab-proyectos .proy-ribbon{ grid-template-columns:repeat(2,1fr) } }
+#tab-proyectos select.proy-cat{ border-radius:3px; padding:2px 8px; font-size:11px; font-weight:600; letter-spacing:.02em; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-secondary); cursor:pointer }
+#tab-proyectos select.proy-cat.cat-capex{ color:var(--accent); background:var(--accent-soft); border-color:var(--accent-line) }
+#tab-proyectos select.proy-cat.cat-enh{ color:var(--good); background:var(--good-soft); border-color:var(--good-line) }
+#tab-proyectos select.proy-cat.cat-mant{ color:var(--warn); background:var(--warn-soft); border-color:var(--warn-line) }
+#tab-proyectos .proy-adv{ display:flex; align-items:center; gap:8px; min-width:108px }
+#tab-proyectos .proy-bar{ flex:1; height:7px; border-radius:2px; background:var(--surface-3); overflow:hidden }
+#tab-proyectos .proy-bar>i{ display:block; height:100%; background:var(--accent) }
+#tab-proyectos .proy-bar>i.hot{ background:var(--warn) }
+#tab-proyectos .proy-adv b{ font-size:12px; font-weight:700; min-width:30px; text-align:right; color:var(--text-primary) }
 </style>
 </head>
 <body>
@@ -1444,6 +1448,7 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
     <h1>Proyectos y presupuesto</h1>
     <p class="lede">Cada obra con su presupuesto aprobado. A medida que llegan las órdenes de compra y las facturas, el gasto se descuenta solo.</p>
   </div>
+  <div class="proy-ribbon" id="proyRibbon"></div>
   <div class="proy-tools">
     <label class="fld">Año fiscal <select id="selFyProy" style="min-width:120px"></select></label>
     <span class="spacer"></span>
@@ -1463,7 +1468,7 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
         <table id="tblProy">
           <thead><tr>
             <th>Código</th><th>Nombre</th><th>Categoría</th><th>Año</th>
-            <th class="num">Presupuesto</th><th class="num">Facturado</th><th>Avance</th><th class="num">Saldo</th><th></th>
+            <th class="num">Presupuesto</th><th class="num">Comprometido</th><th class="num">Facturado</th><th>Utilización</th><th class="num">Saldo</th><th></th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -4130,14 +4135,28 @@ function renderProyectos() {
       <td><select data-f="categoria" class="proy-cat ${catCls}">${optCat}</select></td>
       <td><select data-f="fy">${optFy || `<option value="">—</option>`}</select></td>
       <td class="num edit" data-f="ppto" contenteditable>${p.ppto ? nf(p.ppto) : ""}</td>
+      <td class="num">${nf(d.comprometido)}</td>
       <td class="num">${nf(d.facturado)}</td>
-      <td><div class="proy-adv"><div class="proy-bar"><i style="width:${av == null ? 0 : av}%"></i></div><b>${av == null ? "—" : av + "%"}</b></div></td>
+      <td><div class="proy-adv"><div class="proy-bar"><i class="${av != null && av >= 90 ? "hot" : ""}" style="width:${av == null ? 0 : av}%"></i></div><b>${av == null ? "—" : av + "%"}</b></div></td>
       <td class="num${sobre ? " neg" : ""}">${p.ppto ? nf(d.saldoDisp) : "—"}</td>
       <td style="white-space:nowrap">
         <button class="btn sm ghost" data-verproy="${esc(p.codigo)}" title="Ver la hoja del proyecto en pantalla">Ver</button>
         <button class="btn sm" data-exportproy="${esc(p.codigo)}" title="Descargar la hoja de este proyecto en Excel">Excel</button>
         <button class="btn sm ghost" data-delproy="${i}" title="Quitar este proyecto">✕</button></td></tr>`;
-  }).join("") || `<tr><td colspan="9" class="muted" style="padding:14px">Aún no hay proyectos${fyActivo ? " en " + fyLabel(fyActivo) : ""}. Usa «Agregar proyecto», «Pegar lista» o «Detectar proyectos».</td></tr>`;
+  }).join("") || `<tr><td colspan="10" class="muted" style="padding:14px">Aún no hay proyectos${fyActivo ? " en " + fyLabel(fyActivo) : ""}. Usa «Agregar proyecto», «Pegar lista» o «Detectar proyectos».</td></tr>`;
+
+  const rib = document.getElementById("proyRibbon");
+  if (rib) {
+    rib.style.display = filtradas.length ? "grid" : "none";
+    const T = filtradas.reduce((a, p) => { const d = datosProyecto(p.codigo); a.ppto += p.ppto || 0; a.comp += d.comprometido; a.fact += d.facturado; return a; }, { ppto: 0, comp: 0, fact: 0 });
+    const celdas = [
+      ["Presupuesto" + (fyActivo ? " " + fyLabel(fyActivo) : ""), T.ppto],
+      ["Comprometido", T.comp],
+      ["Facturado", T.fact],
+      ["Saldo disponible", T.ppto - T.comp]
+    ];
+    rib.innerHTML = celdas.map(([k, v]) => `<div class="cell"><div class="k">${esc(k)}</div><div class="v">$${nf(v)}</div></div>`).join("");
+  }
 }
 
 /* ---------------- eventos ---------------- */

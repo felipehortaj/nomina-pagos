@@ -180,14 +180,28 @@ function renderProyectos() {
       <td><select data-f="categoria" class="proy-cat ${catCls}">${optCat}</select></td>
       <td><select data-f="fy">${optFy || `<option value="">—</option>`}</select></td>
       <td class="num edit" data-f="ppto" contenteditable>${p.ppto ? nf(p.ppto) : ""}</td>
+      <td class="num">${nf(d.comprometido)}</td>
       <td class="num">${nf(d.facturado)}</td>
-      <td><div class="proy-adv"><div class="proy-bar"><i style="width:${av == null ? 0 : av}%"></i></div><b>${av == null ? "—" : av + "%"}</b></div></td>
+      <td><div class="proy-adv"><div class="proy-bar"><i class="${av != null && av >= 90 ? "hot" : ""}" style="width:${av == null ? 0 : av}%"></i></div><b>${av == null ? "—" : av + "%"}</b></div></td>
       <td class="num${sobre ? " neg" : ""}">${p.ppto ? nf(d.saldoDisp) : "—"}</td>
       <td style="white-space:nowrap">
         <button class="btn sm ghost" data-verproy="${esc(p.codigo)}" title="Ver la hoja del proyecto en pantalla">Ver</button>
         <button class="btn sm" data-exportproy="${esc(p.codigo)}" title="Descargar la hoja de este proyecto en Excel">Excel</button>
         <button class="btn sm ghost" data-delproy="${i}" title="Quitar este proyecto">✕</button></td></tr>`;
-  }).join("") || `<tr><td colspan="9" class="muted" style="padding:14px">Aún no hay proyectos${fyActivo ? " en " + fyLabel(fyActivo) : ""}. Usa «Agregar proyecto», «Pegar lista» o «Detectar proyectos».</td></tr>`;
+  }).join("") || `<tr><td colspan="10" class="muted" style="padding:14px">Aún no hay proyectos${fyActivo ? " en " + fyLabel(fyActivo) : ""}. Usa «Agregar proyecto», «Pegar lista» o «Detectar proyectos».</td></tr>`;
+
+  const rib = document.getElementById("proyRibbon");
+  if (rib) {
+    rib.style.display = filtradas.length ? "grid" : "none";
+    const T = filtradas.reduce((a, p) => { const d = datosProyecto(p.codigo); a.ppto += p.ppto || 0; a.comp += d.comprometido; a.fact += d.facturado; return a; }, { ppto: 0, comp: 0, fact: 0 });
+    const celdas = [
+      ["Presupuesto" + (fyActivo ? " " + fyLabel(fyActivo) : ""), T.ppto],
+      ["Comprometido", T.comp],
+      ["Facturado", T.fact],
+      ["Saldo disponible", T.ppto - T.comp]
+    ];
+    rib.innerHTML = celdas.map(([k, v]) => `<div class="cell"><div class="k">${esc(k)}</div><div class="v">$${nf(v)}</div></div>`).join("");
+  }
 }
 
 /* ---------------- eventos ---------------- */
