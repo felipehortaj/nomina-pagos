@@ -194,9 +194,9 @@ if (document.getElementById("btnDetectarProy")) {
   const selFy = document.getElementById("selFyProy");
   if (selFy) selFy.addEventListener("change", e => { fyActivo = e.target.value ? +e.target.value : null; renderProyectos(); });
   const bLibro = document.getElementById("btnExportLibro");
-  if (bLibro) bLibro.addEventListener("click", () => exportarLibroFY(fySeleccionado()));
+  if (bLibro) bLibro.addEventListener("click", () => exportarLibroFY(fyActivo));   // null = todos los años
   const bRes = document.getElementById("btnVerResumen");
-  if (bRes) bRes.addEventListener("click", () => verResumen(fySeleccionado()));
+  if (bRes) bRes.addEventListener("click", () => verResumen(fyActivo));
 
   const tp = document.getElementById("tblProy");
   tp.addEventListener("blur", e => {
@@ -250,8 +250,9 @@ function abrirModalProy(titulo, html) {
 }
 function verHojaProyecto(cod) { previewActual = { tipo: "proyecto", cod, fy: null }; abrirModalProy(`Hoja de proyecto · ${cod}`, htmlHojaProyecto(cod)); }
 function verResumen(fy) {
-  if (!fy) { toast("No hay proyectos con año fiscal para resumir"); return; }
-  previewActual = { tipo: "resumen", cod: null, fy }; abrirModalProy(`Resumen y flujo de caja · ${fyLabel(fy)}`, htmlResumen(fy));
+  if (!proyectosDeFy(fy).length) { toast(fy ? `No hay proyectos en ${fyLabel(fy)}` : "Aún no hay proyectos que resumir"); return; }
+  previewActual = { tipo: "resumen", cod: null, fy: fy || null };
+  abrirModalProy(fy ? `Resumen y flujo de caja · ${fyLabel(fy)}` : "Resumen · todos los años", htmlResumen(fy || null));
 }
 
 const PVCSS = `<style>
@@ -304,29 +305,31 @@ function htmlHojaProyecto(cod) {
 }
 
 function htmlResumen(fy) {
+  const conMeses = !!fy;
   const cods = proyectosDeFy(fy);
-  const items = cods.map(c => { const d = datosProyecto(c); return { c, p: d.p, sede: sedeDeProyecto(c), comp: d.comprometido, fact: d.facturado, ppto: d.p.ppto || 0, fl: flujoProyecto(c, fy) }; })
+  const items = cods.map(c => { const d = datosProyecto(c); return { c, p: d.p, sede: sedeDeProyecto(c), comp: d.comprometido, fact: d.facturado, ppto: d.p.ppto || 0, fl: conMeses ? flujoProyecto(c, fy) : null }; })
     .sort((a, b) => String(a.p.categoria || "ZZ").localeCompare(String(b.p.categoria || "ZZ")) || String(a.c).localeCompare(String(b.c)));
   const g = { ppto: 0, comp: 0, fact: 0, pf: 0, sal: 0, m: new Array(12).fill(0) };
   let filas = "";
   for (const it of items) {
     const pf = it.comp - it.fact, sal = it.ppto - it.comp;
-    g.ppto += it.ppto; g.comp += it.comp; g.fact += it.fact; g.pf += pf; g.sal += sal; it.fl.forEach((v, m) => g.m[m] += v);
+    g.ppto += it.ppto; g.comp += it.comp; g.fact += it.fact; g.pf += pf; g.sal += sal; if (conMeses) it.fl.forEach((v, m) => g.m[m] += v);
     filas += `<tr><td class="c">${esc(it.sede)}</td><td>${esc(it.c)}</td><td class="desc">${esc(it.p.nombre || "")}</td><td class="desc">${esc(it.p.categoria || "")}</td>
       <td class="num">${nf(it.ppto)}</td><td class="num">${nf(it.comp)}</td><td class="num amar">${nf(it.fact)}</td><td class="num">${nf(pf)}</td><td class="num">${nf(sal)}</td>
-      ${it.fl.map(v => `<td class="num">${v ? nf(v) : ""}</td>`).join("")}</tr>`;
+      ${conMeses ? it.fl.map(v => `<td class="num">${v ? nf(v) : ""}</td>`).join("") : ""}</tr>`;
   }
-  const totMes = g.m.map(v => `<td class="num">${v ? nf(v) : ""}</td>`).join("");
-  return `${PVCSS}<div class="pv"><h3>Resumen ${fyLabel(fy)} · flujo de caja por mes (facturado)</h3>
+  const totMes = conMeses ? g.m.map(v => `<td class="num">${v ? nf(v) : ""}</td>`).join("") : "";
+  const titulo = conMeses ? `Resumen ${fyLabel(fy)} · flujo de caja por mes (facturado)` : `Resumen · todos los proyectos (${items.length})`;
+  return `${PVCSS}<div class="pv"><h3>${titulo}</h3>
     <table class="det"><thead><tr>
       <th class="l">COLEGIO</th><th class="l">CÓDIGO</th><th class="l">PROYECTO</th><th class="l">CLASIFICACIÓN</th>
       <th>PPTO</th><th>COMPROMETIDO</th><th>FACTURADO</th><th>POR FACTURAR</th><th>SALDO</th>
-      ${MESES_FY.map(m => `<th>${m}</th>`).join("")}
+      ${conMeses ? MESES_FY.map(m => `<th>${m}</th>`).join("") : ""}
     </tr></thead><tbody>${filas}
-      <tr class="tot"><td></td><td></td><td>TOTAL ${fyLabel(fy)}</td><td></td>
+      <tr class="tot"><td></td><td></td><td>TOTAL${conMeses ? " " + fyLabel(fy) : ""}</td><td></td>
         <td class="num">${nf(g.ppto)}</td><td class="num">${nf(g.comp)}</td><td class="num">${nf(g.fact)}</td><td class="num">${nf(g.pf)}</td><td class="num">${nf(g.sal)}</td>${totMes}</tr>
     </tbody></table>
-    <p style="font-size:11px;color:#666;margin-top:8px">El flujo mensual muestra lo <b>facturado</b> en cada mes según la fecha de la factura. La proyección de lo pendiente por facturar se puede cargar a mano en el Excel.</p></div>`;
+    ${conMeses ? `<p style="font-size:11px;color:#666;margin-top:8px">El flujo mensual muestra lo <b>facturado</b> en cada mes según la fecha de la factura. La proyección de lo pendiente por facturar se puede cargar a mano en el Excel.</p>` : `<p style="font-size:11px;color:#666;margin-top:8px">Están todos los proyectos, de todos los años. Elige un año fiscal arriba para ver el flujo de caja mes a mes.</p>`}</div>`;
 }
 
 /* ---------------- Excel: estilos y armado de hojas ---------------- */
@@ -409,28 +412,29 @@ function hojaProyectoWS(cod) {
 }
 
 function hojaResumenWS(fy, cods) {
+  const conMeses = !!fy;
   const ws = {}, put = mkPut(ws);
-  put("A1", "RESUMEN " + fyLabel(fy), { s: { font: { bold: true, sz: 14 } } });
-  const HEAD = ["COLEGIO", "CÓDIGO", "PROYECTO", "CLASIFICACIÓN", "PPTO", "COMPROMETIDO", "FACTURADO", "POR FACTURAR", "SALDO", ...MESES_FY];
+  put("A1", "RESUMEN " + (fy ? fyLabel(fy) : "· TODOS LOS AÑOS"), { s: { font: { bold: true, sz: 14 } } });
+  const HEAD = ["COLEGIO", "CÓDIGO", "PROYECTO", "CLASIFICACIÓN", "PPTO", "COMPROMETIDO", "FACTURADO", "POR FACTURAR", "SALDO", ...(conMeses ? MESES_FY : [])];
   HEAD.forEach((h, i) => put(cc(2, i), h, { s: XS.th }));
-  const items = cods.map(c => { const d = datosProyecto(c); return { c, p: d.p, sede: sedeDeProyecto(c), comp: d.comprometido, fact: d.facturado, ppto: d.p.ppto || 0, fl: flujoProyecto(c, fy) }; })
+  const items = cods.map(c => { const d = datosProyecto(c); return { c, p: d.p, sede: sedeDeProyecto(c), comp: d.comprometido, fact: d.facturado, ppto: d.p.ppto || 0, fl: conMeses ? flujoProyecto(c, fy) : null }; })
     .sort((a, b) => String(a.p.categoria || "ZZ").localeCompare(String(b.p.categoria || "ZZ")) || String(a.c).localeCompare(String(b.c)));
   let r = 3; const g = { ppto: 0, comp: 0, fact: 0, pf: 0, sal: 0, m: new Array(12).fill(0) };
   for (const it of items) {
     const pf = it.comp - it.fact, sal = it.ppto - it.comp;
-    g.ppto += it.ppto; g.comp += it.comp; g.fact += it.fact; g.pf += pf; g.sal += sal; it.fl.forEach((v, m) => g.m[m] += v);
+    g.ppto += it.ppto; g.comp += it.comp; g.fact += it.fact; g.pf += pf; g.sal += sal; if (conMeses) it.fl.forEach((v, m) => g.m[m] += v);
     put(cc(r, 0), it.sede, { s: XS.cen }); put(cc(r, 1), it.c, { s: XS.txt }); put(cc(r, 2), it.p.nombre || "", { s: XS.txt }); put(cc(r, 3), it.p.categoria || "", { s: XS.txt });
     [it.ppto, it.comp].forEach((v, k) => put(cc(r, 4 + k), v, { z: Z, s: XS.num }));
     put(cc(r, 6), it.fact, { z: Z, s: XS.amar });
     [pf, sal].forEach((v, k) => put(cc(r, 7 + k), v, { z: Z, s: XS.num }));
-    it.fl.forEach((v, m) => put(cc(r, 9 + m), v, { z: Z, s: XS.num }));
+    if (conMeses) it.fl.forEach((v, m) => put(cc(r, 9 + m), v, { z: Z, s: XS.num }));
     r++;
   }
-  put(cc(r, 2), "TOTAL " + fyLabel(fy), { s: { ...XS.tot, alignment: { horizontal: "left" } } });
+  put(cc(r, 2), "TOTAL" + (conMeses ? " " + fyLabel(fy) : ""), { s: { ...XS.tot, alignment: { horizontal: "left" } } });
   [g.ppto, g.comp, g.fact, g.pf, g.sal].forEach((v, k) => put(cc(r, 4 + k), v, { z: Z, s: XS.tot }));
-  g.m.forEach((v, m) => put(cc(r, 9 + m), v, { z: Z, s: XS.tot }));
-  ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r, c: 8 + 12 } });
-  ws["!cols"] = [{ wch: 8 }, { wch: 13 }, { wch: 30 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 13 }, { wch: 13 }, ...MESES_FY.map(() => ({ wch: 11 }))];
+  if (conMeses) g.m.forEach((v, m) => put(cc(r, 9 + m), v, { z: Z, s: XS.tot }));
+  ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r, c: conMeses ? 8 + 12 : 8 } });
+  ws["!cols"] = [{ wch: 8 }, { wch: 13 }, { wch: 30 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 13 }, { wch: 13 }, ...(conMeses ? MESES_FY.map(() => ({ wch: 11 })) : [])];
   return ws;
 }
 
@@ -443,16 +447,16 @@ function exportarHojaProyecto(cod) {
   XLSX.writeFile(wb, `Proyecto_${cod}_${hoyIso().replace(/-/g, "")}.xlsx`);
   toast(`Hoja de ${cod} exportada a Excel`);
 }
-function exportarLibroFY(fy) {
+function exportarLibroFY(fy) {                             // fy null = todos los años
   if (typeof XLSX === "undefined") { toast("La librería de Excel no cargó: revisa tu conexión y reintenta"); return; }
-  if (!fy) { toast("No hay proyectos con año fiscal para exportar"); return; }
   const cods = proyectosDeFy(fy);
-  if (!cods.length) { toast(`No hay proyectos en ${fyLabel(fy)}`); return; }
+  if (!cods.length) { toast(fy ? `No hay proyectos en ${fyLabel(fy)}` : "No hay proyectos para exportar"); return; }
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, hojaResumenWS(fy, cods), "RESUMEN " + fyLabel(fy));
+  XLSX.utils.book_append_sheet(wb, hojaResumenWS(fy, cods), fy ? "RESUMEN " + fyLabel(fy) : "RESUMEN");
   const usados = {};
-  cods.forEach(c => { let n = nombreHoja(c); while (usados[n]) n = n.slice(0, 28) + "_" + (Object.keys(usados).length); usados[n] = 1; XLSX.utils.book_append_sheet(wb, hojaProyectoWS(c), n); });
-  XLSX.writeFile(wb, `Libro_Proyectos_${fyLabel(fy)}_${hoyIso().replace(/-/g, "")}.xlsx`);
-  toast(`Libro de ${fyLabel(fy)} exportado: ${cods.length} proyecto(s) + resumen`);
+  cods.forEach(c => { let n = nombreHoja(c) || "PROYECTO"; while (usados[n]) n = n.slice(0, 28) + "_" + (Object.keys(usados).length); usados[n] = 1; XLSX.utils.book_append_sheet(wb, hojaProyectoWS(c), n); });
+  const suf = fy ? fyLabel(fy) : "todos";
+  XLSX.writeFile(wb, `Libro_Proyectos_${suf}_${hoyIso().replace(/-/g, "")}.xlsx`);
+  toast(fy ? `Libro de ${fyLabel(fy)} exportado: ${cods.length} proyecto(s) + resumen` : `Libro exportado: ${cods.length} proyecto(s) de todos los años + resumen`);
 }
 </script>
