@@ -492,6 +492,28 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
   .ctx{top:auto;position:static}
   main{padding:16px 14px 60px}
 }
+
+/* ===== Estilo de la pestaña «Proyectos» — acento azul-violeta tipo Stripe
+   (excepción al diseño liviano, pedida por el usuario). Todo acotado a
+   #tab-proyectos para no afectar el resto de la app. ===== */
+#tab-proyectos{ --pz:#635BFF; --pz-grad:linear-gradient(105deg,#4F7DF0,#635BFF 40%,#3E8EF7 70%,#21D4FD) }
+#tab-proyectos .proy-hero{ background:var(--pz-grad); color:#fff; border-radius:14px; padding:22px 26px; margin-bottom:14px; box-shadow:0 12px 30px -16px rgba(53,74,209,.6) }
+#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.85) }
+#tab-proyectos .proy-hero h1{ margin:8px 0 0; color:#fff; font-size:clamp(24px,3vw,34px); font-weight:700; letter-spacing:-.02em; line-height:1.08 }
+#tab-proyectos .proy-hero .lede{ margin:9px 0 0; color:rgba(255,255,255,.92); max-width:60ch }
+#tab-proyectos .proy-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:14px }
+#tab-proyectos .proy-tools .spacer{ flex:1 }
+#tab-proyectos .btn.primary{ background:var(--pz); border-color:var(--pz); color:#fff }
+#tab-proyectos .btn.primary:hover{ filter:brightness(1.05) }
+#tab-proyectos select.proy-cat{ border-radius:999px; padding:4px 12px; font-size:12px; font-weight:650; border:1px solid var(--border); background:var(--surface-2); cursor:pointer }
+#tab-proyectos select.proy-cat.cat-capex{ color:#635BFF; background:rgba(99,91,255,.13); border-color:transparent }
+#tab-proyectos select.proy-cat.cat-enh{ color:#0E9F6E; background:rgba(16,185,129,.15); border-color:transparent }
+#tab-proyectos select.proy-cat.cat-mant{ color:#B07D12; background:rgba(214,165,20,.18); border-color:transparent }
+#tab-proyectos select.proy-cat.cat-gasto{ color:var(--text-secondary); background:rgba(100,116,139,.16); border-color:transparent }
+#tab-proyectos .proy-adv{ display:flex; align-items:center; gap:8px; min-width:118px }
+#tab-proyectos .proy-bar{ flex:1; height:6px; border-radius:99px; background:var(--surface-3); overflow:hidden }
+#tab-proyectos .proy-bar>i{ display:block; height:100%; background:var(--pz); border-radius:99px }
+#tab-proyectos .proy-adv b{ font-size:12px; font-weight:700; min-width:32px; text-align:right; color:var(--text-primary) }
 </style>
 </head>
 <body>
@@ -1417,16 +1439,14 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
 
 <!-- ============ PROYECTOS Y PRESUPUESTO ============ -->
 <section class="panel" id="tab-proyectos">
-  <div class="page-h">
-    <div class="ttl">
-      <div class="eyebrow">Control presupuestario</div>
-      <h1>Proyectos y presupuesto</h1>
-      <p>Cada proyecto tiene su código de Cognita, un presupuesto aprobado y una categoría. La app cruza sus órdenes
-        de compra y las facturas ya cargadas para mostrarte lo comprometido, lo facturado y el saldo, y exporta la
-        hoja de control de cada proyecto en Excel, en el formato de tu libro anual.</p>
-    </div>
-    <span class="spacer"></span>
+  <div class="proy-hero">
+    <div class="eyebrow">Año fiscal · Control presupuestario</div>
+    <h1>Proyectos y presupuesto</h1>
+    <p class="lede">Cada obra con su presupuesto aprobado. A medida que llegan las órdenes de compra y las facturas, el gasto se descuenta solo.</p>
+  </div>
+  <div class="proy-tools">
     <label class="fld">Año fiscal <select id="selFyProy" style="min-width:120px"></select></label>
+    <span class="spacer"></span>
     <button class="btn" id="btnVerResumen" title="Ver el resumen del año con el flujo de caja por mes">Ver resumen</button>
     <button class="btn" id="btnExportLibro" title="Descargar en un solo Excel los proyectos del año elegido (o todos, si está en «Todos los años»), con su hoja resumen">Descargar libro</button>
     <button class="btn primary" id="btnPegarProy" title="Cargar de una vez muchos proyectos con su presupuesto, copiándolos de tu Excel">Pegar lista</button>
@@ -1443,7 +1463,7 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
         <table id="tblProy">
           <thead><tr>
             <th>Código</th><th>Nombre</th><th>Categoría</th><th>Año</th>
-            <th class="num">Presupuesto</th><th class="num">Comprometido</th><th class="num">Facturado</th><th class="num">Saldo</th><th></th>
+            <th class="num">Presupuesto</th><th class="num">Facturado</th><th>Avance</th><th class="num">Saldo</th><th></th>
           </tr></thead>
           <tbody></tbody>
         </table>
@@ -4102,14 +4122,16 @@ function renderProyectos() {
     const setFy = [...new Set([...candidatos, fyp].filter(Boolean))].sort((a, b) => b - a);
     const optFy = setFy.map(y => `<option value="${y}"${y === fyp ? " selected" : ""}>${fyLabel(y)}</option>`).join("");
     const sobre = p.ppto && d.comprometido > p.ppto;
+    const catCls = { "DEVELOPMENT CAPEX": "cat-capex", "ENHANCEMENT": "cat-enh", "MANTENCIÓN": "cat-mant", "GASTOS": "cat-gasto" }[p.categoria] || "";
+    const av = p.ppto ? Math.min(100, Math.round(d.facturado / p.ppto * 100)) : null;
     return `<tr data-i="${i}" data-cod="${esc(p.codigo)}">
       <td class="mono edit" data-f="codigo" contenteditable>${esc(p.codigo)}</td>
       <td class="edit" data-f="nombre" contenteditable>${esc(p.nombre || "")}</td>
-      <td><select data-f="categoria">${optCat}</select></td>
+      <td><select data-f="categoria" class="proy-cat ${catCls}">${optCat}</select></td>
       <td><select data-f="fy">${optFy || `<option value="">—</option>`}</select></td>
       <td class="num edit" data-f="ppto" contenteditable>${p.ppto ? nf(p.ppto) : ""}</td>
-      <td class="num">${nf(d.comprometido)}</td>
       <td class="num">${nf(d.facturado)}</td>
+      <td><div class="proy-adv"><div class="proy-bar"><i style="width:${av == null ? 0 : av}%"></i></div><b>${av == null ? "—" : av + "%"}</b></div></td>
       <td class="num${sobre ? " neg" : ""}">${p.ppto ? nf(d.saldoDisp) : "—"}</td>
       <td style="white-space:nowrap">
         <button class="btn sm ghost" data-verproy="${esc(p.codigo)}" title="Ver la hoja del proyecto en pantalla">Ver</button>

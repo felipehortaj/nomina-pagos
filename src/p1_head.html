@@ -492,6 +492,28 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
   .ctx{top:auto;position:static}
   main{padding:16px 14px 60px}
 }
+
+/* ===== Estilo de la pestaña «Proyectos» — acento azul-violeta tipo Stripe
+   (excepción al diseño liviano, pedida por el usuario). Todo acotado a
+   #tab-proyectos para no afectar el resto de la app. ===== */
+#tab-proyectos{ --pz:#635BFF; --pz-grad:linear-gradient(105deg,#4F7DF0,#635BFF 40%,#3E8EF7 70%,#21D4FD) }
+#tab-proyectos .proy-hero{ background:var(--pz-grad); color:#fff; border-radius:14px; padding:22px 26px; margin-bottom:14px; box-shadow:0 12px 30px -16px rgba(53,74,209,.6) }
+#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; color:rgba(255,255,255,.85) }
+#tab-proyectos .proy-hero h1{ margin:8px 0 0; color:#fff; font-size:clamp(24px,3vw,34px); font-weight:700; letter-spacing:-.02em; line-height:1.08 }
+#tab-proyectos .proy-hero .lede{ margin:9px 0 0; color:rgba(255,255,255,.92); max-width:60ch }
+#tab-proyectos .proy-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:14px }
+#tab-proyectos .proy-tools .spacer{ flex:1 }
+#tab-proyectos .btn.primary{ background:var(--pz); border-color:var(--pz); color:#fff }
+#tab-proyectos .btn.primary:hover{ filter:brightness(1.05) }
+#tab-proyectos select.proy-cat{ border-radius:999px; padding:4px 12px; font-size:12px; font-weight:650; border:1px solid var(--border); background:var(--surface-2); cursor:pointer }
+#tab-proyectos select.proy-cat.cat-capex{ color:#635BFF; background:rgba(99,91,255,.13); border-color:transparent }
+#tab-proyectos select.proy-cat.cat-enh{ color:#0E9F6E; background:rgba(16,185,129,.15); border-color:transparent }
+#tab-proyectos select.proy-cat.cat-mant{ color:#B07D12; background:rgba(214,165,20,.18); border-color:transparent }
+#tab-proyectos select.proy-cat.cat-gasto{ color:var(--text-secondary); background:rgba(100,116,139,.16); border-color:transparent }
+#tab-proyectos .proy-adv{ display:flex; align-items:center; gap:8px; min-width:118px }
+#tab-proyectos .proy-bar{ flex:1; height:6px; border-radius:99px; background:var(--surface-3); overflow:hidden }
+#tab-proyectos .proy-bar>i{ display:block; height:100%; background:var(--pz); border-radius:99px }
+#tab-proyectos .proy-adv b{ font-size:12px; font-weight:700; min-width:32px; text-align:right; color:var(--text-primary) }
 </style>
 </head>
 <body>

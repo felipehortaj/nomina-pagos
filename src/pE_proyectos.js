@@ -172,14 +172,16 @@ function renderProyectos() {
     const setFy = [...new Set([...candidatos, fyp].filter(Boolean))].sort((a, b) => b - a);
     const optFy = setFy.map(y => `<option value="${y}"${y === fyp ? " selected" : ""}>${fyLabel(y)}</option>`).join("");
     const sobre = p.ppto && d.comprometido > p.ppto;
+    const catCls = { "DEVELOPMENT CAPEX": "cat-capex", "ENHANCEMENT": "cat-enh", "MANTENCIÓN": "cat-mant", "GASTOS": "cat-gasto" }[p.categoria] || "";
+    const av = p.ppto ? Math.min(100, Math.round(d.facturado / p.ppto * 100)) : null;
     return `<tr data-i="${i}" data-cod="${esc(p.codigo)}">
       <td class="mono edit" data-f="codigo" contenteditable>${esc(p.codigo)}</td>
       <td class="edit" data-f="nombre" contenteditable>${esc(p.nombre || "")}</td>
-      <td><select data-f="categoria">${optCat}</select></td>
+      <td><select data-f="categoria" class="proy-cat ${catCls}">${optCat}</select></td>
       <td><select data-f="fy">${optFy || `<option value="">—</option>`}</select></td>
       <td class="num edit" data-f="ppto" contenteditable>${p.ppto ? nf(p.ppto) : ""}</td>
-      <td class="num">${nf(d.comprometido)}</td>
       <td class="num">${nf(d.facturado)}</td>
+      <td><div class="proy-adv"><div class="proy-bar"><i style="width:${av == null ? 0 : av}%"></i></div><b>${av == null ? "—" : av + "%"}</b></div></td>
       <td class="num${sobre ? " neg" : ""}">${p.ppto ? nf(d.saldoDisp) : "—"}</td>
       <td style="white-space:nowrap">
         <button class="btn sm ghost" data-verproy="${esc(p.codigo)}" title="Ver la hoja del proyecto en pantalla">Ver</button>
