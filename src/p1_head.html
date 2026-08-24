@@ -496,18 +496,21 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
 /* ===== Estilo de la pestaña «Proyectos» — institucional/bancario (aprobado por el
    usuario). Acotado a #tab-proyectos y usando los tokens de tema de la app, así
    responde en claro y oscuro. ===== */
-#tab-proyectos .proy-hero{ background:var(--surface-1); border:1px solid var(--border); border-left:3px solid var(--accent); border-radius:var(--r-m); padding:13px 18px; margin-bottom:12px }
-#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--text-muted) }
-#tab-proyectos .proy-hero h1{ margin:4px 0 0; color:var(--text-primary); font-size:21px; font-weight:600; letter-spacing:-.01em }
-#tab-proyectos .proy-hero .lede{ margin:5px 0 0; color:var(--text-secondary); font-size:13px; max-width:82ch }
+#tab-proyectos{ --pz-navy:#173250 }
+#tab-proyectos .proy-hero{ background:var(--pz-navy); border-radius:var(--r-m); padding:16px 20px; margin-bottom:12px }
+#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.66) }
+#tab-proyectos .proy-hero h1{ margin:5px 0 0; color:#fff; font-size:22px; font-weight:600; letter-spacing:-.01em }
+#tab-proyectos .proy-hero .lede{ margin:6px 0 0; color:rgba(255,255,255,.82); font-size:13px; max-width:82ch }
 #tab-proyectos .proy-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:12px }
 #tab-proyectos .proy-tools .spacer{ flex:1 }
 #tab-proyectos .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff }
-#tab-proyectos .proy-ribbon{ display:grid; grid-template-columns:repeat(4,1fr); background:var(--surface-1); border:1px solid var(--border); border-radius:var(--r-m); margin-bottom:12px; overflow:hidden }
-#tab-proyectos .proy-ribbon .cell{ padding:11px 16px; border-left:1px solid var(--border) }
+#tab-proyectos .proy-ribbon{ display:grid; grid-template-columns:repeat(4,1fr); background:var(--accent-soft); border:1px solid var(--accent-line); border-radius:var(--r-m); margin-bottom:12px; overflow:hidden }
+#tab-proyectos .proy-ribbon .cell{ padding:11px 16px; border-left:1px solid var(--accent-line) }
 #tab-proyectos .proy-ribbon .cell:first-child{ border-left:none; box-shadow:inset 3px 0 0 var(--accent) }
-#tab-proyectos .proy-ribbon .k{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--text-muted); font-weight:700 }
+#tab-proyectos .proy-ribbon .k{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-hi); font-weight:700 }
 #tab-proyectos .proy-ribbon .v{ font-size:18px; font-weight:700; color:var(--text-primary); margin-top:3px; letter-spacing:-.01em; font-variant-numeric:tabular-nums }
+#tab-proyectos #tblProy thead th{ background:var(--accent-soft); color:var(--accent-hi); border-bottom:1px solid var(--accent-line) }
+#tab-proyectos .card>.card-h{ border-bottom:1px solid var(--border) }
 @media(max-width:760px){ #tab-proyectos .proy-ribbon{ grid-template-columns:repeat(2,1fr) } }
 #tab-proyectos select.proy-cat{ border-radius:3px; padding:2px 8px; font-size:11px; font-weight:600; letter-spacing:.02em; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-secondary); cursor:pointer }
 #tab-proyectos select.proy-cat.cat-capex{ color:var(--accent); background:var(--accent-soft); border-color:var(--accent-line) }
