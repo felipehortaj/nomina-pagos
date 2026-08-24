@@ -58,7 +58,8 @@ fs.writeFileSync(path.join(DIST, "Nomina_Pagos.html"), html);
 const local = html
   .replace("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", "../node_modules/pdfjs-dist/build/pdf.min.js")
   .replace("https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js", "../node_modules/xlsx-js-style/dist/xlsx.bundle.js")
-  .replace("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js", "../node_modules/pdfjs-dist/build/pdf.worker.min.js");
+  .replace("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js", "../node_modules/pdfjs-dist/build/pdf.worker.min.js")
+  .replace(/\s*<link\b[^>]*fonts\.(?:googleapis|gstatic)\.com[^>]*>/g, "");   // fuentes por CDN: fuera en las pruebas (offline)
 fs.writeFileSync(path.join(DIST, "test_local.html"), local);
 
 /* --- comprobaciones que no se pueden romper ------------------------------ */
