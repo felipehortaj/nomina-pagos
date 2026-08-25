@@ -8,6 +8,7 @@ let soloProblemas = false;
 function render() {
   db.fac.forEach(f => { if (f.tipo === "CAPEX" && !f.eeppId) aplicarCalce(f); });
   renderBarraNomina(); renderPeso(); renderTiles(); if (typeof renderLib === "function") renderLib(); renderEepp(); renderFac(); renderNomina(); renderCorreo(); renderHist(); renderCat(); renderOcCat();
+  if (typeof renderProyectos === "function") renderProyectos();
   if (typeof renderOcPdf === "function" && ocPdfLista.length) renderOcPdf();
   const porEnviar = db.eepp.filter(e => !e.enviado && !e.facId).length;
   const conAlerta = db.fac.reduce((s, f) => s + (nivel(controles(f)) === "ok" ? 0 : 1), 0);

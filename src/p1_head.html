@@ -4,8 +4,11 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nómina de Pagos — Cognita Chile</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx-js-style@1.2.0/dist/xlsx.bundle.js"></script>
 <style>
 /* =========================================================================
    SISTEMA DE DISEÑO — versión liviana
@@ -13,37 +16,39 @@
    Sin sombras salvo en capas flotantes. Color solo para significado.
    Las explicaciones viven detrás del interruptor de ayuda (data-ayuda).
    ========================================================================= */
+/* Sistema de diseño AXIUM (look Apple/limpio): Inter, azul #0071E3, casi-blanco,
+   bordes suaves y esquinas redondeadas. Se aplica a toda la app vía estos tokens. */
 :root{
-  --surface-0:#f7f7f5; --surface-1:#ffffff; --surface-2:#f2f2ef; --surface-3:#e9e9e4;
-  --border:#e6e5e0; --border-strong:#d3d2cb;
-  --text-primary:#2a2a25; --text-secondary:#6b6a63; --text-muted:#93928a;
-  --accent:#2f77cc; --accent-hi:#245fa6; --accent-soft:#eef4fc; --accent-line:#cfe0f4;
-  --good:#2c7d3f; --warn:#96660b; --crit:#bf4040;
-  --good-soft:#f0f7f1; --warn-soft:#fbf5e7; --crit-soft:#fcf1f1;
-  --good-line:#cfe4d3; --warn-line:#ead9b4; --crit-line:#eecfcf;
-  --r-s:5px; --r-m:7px; --r-l:9px;
+  --surface-0:#f5f5f7; --surface-1:#ffffff; --surface-2:#f0f0f3; --surface-3:#e8e8ed;
+  --border:#e5e5ea; --border-strong:#d2d2d7;
+  --text-primary:#1d1d1f; --text-secondary:#424245; --text-muted:#86868b;
+  --accent:#2456d6; --accent-hi:#1b43ae; --accent-soft:#eaf0fc; --accent-line:#cbd9f6;
+  --good:#1d8a4e; --warn:#9a6b12; --crit:#d7373b;
+  --good-soft:#eaf6ef; --warn-soft:#fbf4e5; --crit-soft:#fceded;
+  --good-line:#cde8d6; --warn-line:#ead9b0; --crit-line:#f3cfcf;
+  --r-s:7px; --r-m:12px; --r-l:16px;
   --sh-1:none;
-  --sh-3:0 12px 40px rgba(20,20,15,.16);
+  --sh-3:0 12px 40px rgba(0,0,0,.14);
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --side:226px;
+  --side:248px;
   color-scheme:light;
 }
 :root[data-theme="dark"]{
-  --surface-0:#121211; --surface-1:#191918; --surface-2:#202020; --surface-3:#282826;
-  --border:#2c2c29; --border-strong:#3d3d38;
-  --text-primary:#ebebe6; --text-secondary:#a9a8a0; --text-muted:#85847c;
-  --accent:#5b9bea; --accent-hi:#7cb0ef; --accent-soft:#162434; --accent-line:#2a4260;
-  --good:#63b073; --warn:#c6952f; --crit:#e08585;
-  --good-soft:#15201a; --warn-soft:#231d11; --crit-soft:#241717;
-  --good-line:#28402d; --warn-line:#3f3418; --crit-line:#432727;
-  --sh-3:0 14px 44px rgba(0,0,0,.55);
+  --surface-0:#161618; --surface-1:#1e1e20; --surface-2:#2a2a2c; --surface-3:#38383a;
+  --border:#38383a; --border-strong:#48484a;
+  --text-primary:#f5f5f7; --text-secondary:#aeaeb2; --text-muted:#8e8e93;
+  --accent:#5b82f2; --accent-hi:#809bf6; --accent-soft:#17264a; --accent-line:#2f4d86;
+  --good:#30d158; --warn:#e0a93b; --crit:#ff453a;
+  --good-soft:#0f2417; --warn-soft:#241d0f; --crit-soft:#2a1414;
+  --good-line:#1f4a30; --warn-line:#4a3a17; --crit-line:#5a2622;
+  --sh-3:0 14px 44px rgba(0,0,0,.6);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   background:var(--surface-0); color:var(--text-primary);
-  font:13px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font:13px/1.55 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:-.01em;
   font-weight:400; -webkit-font-smoothing:antialiased;
 }
 h1,h2,h3,h4{margin:0;color:var(--text-primary)}
@@ -492,6 +497,34 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
   .ctx{top:auto;position:static}
   main{padding:16px 14px 60px}
 }
+
+/* ===== Estilo de la pestaña «Proyectos» — institucional/bancario (aprobado por el
+   usuario). Acotado a #tab-proyectos y usando los tokens de tema de la app, así
+   responde en claro y oscuro. ===== */
+#tab-proyectos .proy-hero{ background:linear-gradient(120deg,#1b3fa6,#2456d6 55%,#2e6be6); border-radius:var(--r-m); padding:18px 22px; margin-bottom:12px }
+#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.66) }
+#tab-proyectos .proy-hero h1{ margin:5px 0 0; color:#fff; font-size:22px; font-weight:600; letter-spacing:-.01em }
+#tab-proyectos .proy-hero .lede{ margin:6px 0 0; color:rgba(255,255,255,.82); font-size:13px; max-width:82ch }
+#tab-proyectos .proy-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:12px }
+#tab-proyectos .proy-tools .spacer{ flex:1 }
+#tab-proyectos .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff }
+#tab-proyectos .proy-ribbon{ display:grid; grid-template-columns:repeat(4,1fr); background:var(--accent-soft); border:1px solid var(--accent-line); border-radius:var(--r-m); margin-bottom:12px; overflow:hidden }
+#tab-proyectos .proy-ribbon .cell{ padding:11px 16px; border-left:1px solid var(--accent-line) }
+#tab-proyectos .proy-ribbon .cell:first-child{ border-left:none; box-shadow:inset 3px 0 0 var(--accent) }
+#tab-proyectos .proy-ribbon .k{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-hi); font-weight:700 }
+#tab-proyectos .proy-ribbon .v{ font-size:18px; font-weight:700; color:var(--text-primary); margin-top:3px; letter-spacing:-.01em; font-variant-numeric:tabular-nums }
+#tab-proyectos #tblProy thead th{ background:var(--accent-soft); color:var(--accent-hi); border-bottom:1px solid var(--accent-line) }
+#tab-proyectos .card>.card-h{ border-bottom:1px solid var(--border) }
+@media(max-width:760px){ #tab-proyectos .proy-ribbon{ grid-template-columns:repeat(2,1fr) } }
+#tab-proyectos select.proy-cat{ border-radius:3px; padding:2px 8px; font-size:11px; font-weight:600; letter-spacing:.02em; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-secondary); cursor:pointer }
+#tab-proyectos select.proy-cat.cat-capex{ color:var(--accent); background:var(--accent-soft); border-color:var(--accent-line) }
+#tab-proyectos select.proy-cat.cat-enh{ color:var(--good); background:var(--good-soft); border-color:var(--good-line) }
+#tab-proyectos select.proy-cat.cat-mant{ color:var(--warn); background:var(--warn-soft); border-color:var(--warn-line) }
+#tab-proyectos .proy-adv{ display:flex; align-items:center; gap:8px; min-width:108px }
+#tab-proyectos .proy-bar{ flex:1; height:7px; border-radius:2px; background:var(--surface-3); overflow:hidden }
+#tab-proyectos .proy-bar>i{ display:block; height:100%; background:var(--accent) }
+#tab-proyectos .proy-bar>i.hot{ background:var(--warn) }
+#tab-proyectos .proy-adv b{ font-size:12px; font-weight:700; min-width:30px; text-align:right; color:var(--text-primary) }
 </style>
 </head>
 <body>
@@ -541,6 +574,9 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
     <button data-tab="historial">
       <span class="ico"><svg><use href="#i-hist"/></svg></span><span class="tx">Historial</span><span class="pill" id="pillHist">0</span>
     </button>
+    <button data-tab="proyectos">
+      <span class="ico"><svg><use href="#i-oc"/></svg></span><span class="tx">Proyectos y presupuesto</span><span class="pill" id="pillProy">0</span>
+    </button>
     <button data-tab="catalogos">
       <span class="ico"><svg><use href="#i-cat"/></svg></span><span class="tx">Sedes y proveedores</span>
     </button>
@@ -583,8 +619,8 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
 <main>
 <div id="libAlert" class="alert crit hide">
   <b>No pude cargar las librerías de lectura de PDF y Excel.</b>
-  Esta app las toma de <code>cdnjs.cloudflare.com</code> la primera vez que la abres. Si tu red corporativa lo bloquea,
-  pídele a TI que habilite ese dominio, o ábrela una vez desde una red sin restricción.
+  Esta app las toma de <code>cdnjs.cloudflare.com</code> y <code>cdn.jsdelivr.net</code> la primera vez que la abres. Si tu red
+  corporativa los bloquea, pídele a TI que habilite esos dominios, o ábrela una vez desde una red sin restricción.
 </div>
 
 <!-- ============ PANEL ============ -->

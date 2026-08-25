@@ -156,6 +156,7 @@ function todasLasFacturas() {                        // de todas las nóminas, c
 /* db.fac queda como alias de las facturas de la nómina activa */
 function prepararDb(o) {
   o.nominas = Array.isArray(o.nominas) ? o.nominas : [];
+  o.proyectos = Array.isArray(o.proyectos) ? o.proyectos : [];   // presupuesto/categoría por proyecto
   o.nominas.forEach(n => {
     n.id = n.id || uid();
     n.fac = Array.isArray(n.fac) ? n.fac : [];
@@ -215,6 +216,7 @@ function dbDesdeObjeto(o) {
     },
     eepp: o.eepp || [],
     nominas: o.nominas || [],
+    proyectos: Array.isArray(o.proyectos) ? o.proyectos : [],
     activa: o.activa || "",
     __facSuelta: Array.isArray(o.fac) ? o.fac : []            // bases del modelo anterior
   };

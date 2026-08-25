@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Nómina de Pagos — Cognita Chile</title>
 <script src="../node_modules/pdfjs-dist/build/pdf.min.js"></script>
-<script src="../node_modules/xlsx/dist/xlsx.full.min.js"></script>
+<script src="../node_modules/xlsx-js-style/dist/xlsx.bundle.js"></script>
 <style>
 /* =========================================================================
    SISTEMA DE DISEÑO — versión liviana
@@ -13,37 +13,39 @@
    Sin sombras salvo en capas flotantes. Color solo para significado.
    Las explicaciones viven detrás del interruptor de ayuda (data-ayuda).
    ========================================================================= */
+/* Sistema de diseño AXIUM (look Apple/limpio): Inter, azul #0071E3, casi-blanco,
+   bordes suaves y esquinas redondeadas. Se aplica a toda la app vía estos tokens. */
 :root{
-  --surface-0:#f7f7f5; --surface-1:#ffffff; --surface-2:#f2f2ef; --surface-3:#e9e9e4;
-  --border:#e6e5e0; --border-strong:#d3d2cb;
-  --text-primary:#2a2a25; --text-secondary:#6b6a63; --text-muted:#93928a;
-  --accent:#2f77cc; --accent-hi:#245fa6; --accent-soft:#eef4fc; --accent-line:#cfe0f4;
-  --good:#2c7d3f; --warn:#96660b; --crit:#bf4040;
-  --good-soft:#f0f7f1; --warn-soft:#fbf5e7; --crit-soft:#fcf1f1;
-  --good-line:#cfe4d3; --warn-line:#ead9b4; --crit-line:#eecfcf;
-  --r-s:5px; --r-m:7px; --r-l:9px;
+  --surface-0:#f5f5f7; --surface-1:#ffffff; --surface-2:#f0f0f3; --surface-3:#e8e8ed;
+  --border:#e5e5ea; --border-strong:#d2d2d7;
+  --text-primary:#1d1d1f; --text-secondary:#424245; --text-muted:#86868b;
+  --accent:#2456d6; --accent-hi:#1b43ae; --accent-soft:#eaf0fc; --accent-line:#cbd9f6;
+  --good:#1d8a4e; --warn:#9a6b12; --crit:#d7373b;
+  --good-soft:#eaf6ef; --warn-soft:#fbf4e5; --crit-soft:#fceded;
+  --good-line:#cde8d6; --warn-line:#ead9b0; --crit-line:#f3cfcf;
+  --r-s:7px; --r-m:12px; --r-l:16px;
   --sh-1:none;
-  --sh-3:0 12px 40px rgba(20,20,15,.16);
+  --sh-3:0 12px 40px rgba(0,0,0,.14);
   --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
-  --side:226px;
+  --side:248px;
   color-scheme:light;
 }
 :root[data-theme="dark"]{
-  --surface-0:#121211; --surface-1:#191918; --surface-2:#202020; --surface-3:#282826;
-  --border:#2c2c29; --border-strong:#3d3d38;
-  --text-primary:#ebebe6; --text-secondary:#a9a8a0; --text-muted:#85847c;
-  --accent:#5b9bea; --accent-hi:#7cb0ef; --accent-soft:#162434; --accent-line:#2a4260;
-  --good:#63b073; --warn:#c6952f; --crit:#e08585;
-  --good-soft:#15201a; --warn-soft:#231d11; --crit-soft:#241717;
-  --good-line:#28402d; --warn-line:#3f3418; --crit-line:#432727;
-  --sh-3:0 14px 44px rgba(0,0,0,.55);
+  --surface-0:#161618; --surface-1:#1e1e20; --surface-2:#2a2a2c; --surface-3:#38383a;
+  --border:#38383a; --border-strong:#48484a;
+  --text-primary:#f5f5f7; --text-secondary:#aeaeb2; --text-muted:#8e8e93;
+  --accent:#5b82f2; --accent-hi:#809bf6; --accent-soft:#17264a; --accent-line:#2f4d86;
+  --good:#30d158; --warn:#e0a93b; --crit:#ff453a;
+  --good-soft:#0f2417; --warn-soft:#241d0f; --crit-soft:#2a1414;
+  --good-line:#1f4a30; --warn-line:#4a3a17; --crit-line:#5a2622;
+  --sh-3:0 14px 44px rgba(0,0,0,.6);
   color-scheme:dark;
 }
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
   background:var(--surface-0); color:var(--text-primary);
-  font:13px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  font:13px/1.55 "Inter",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;letter-spacing:-.01em;
   font-weight:400; -webkit-font-smoothing:antialiased;
 }
 h1,h2,h3,h4{margin:0;color:var(--text-primary)}
@@ -492,6 +494,34 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
   .ctx{top:auto;position:static}
   main{padding:16px 14px 60px}
 }
+
+/* ===== Estilo de la pestaña «Proyectos» — institucional/bancario (aprobado por el
+   usuario). Acotado a #tab-proyectos y usando los tokens de tema de la app, así
+   responde en claro y oscuro. ===== */
+#tab-proyectos .proy-hero{ background:linear-gradient(120deg,#1b3fa6,#2456d6 55%,#2e6be6); border-radius:var(--r-m); padding:18px 22px; margin-bottom:12px }
+#tab-proyectos .proy-hero .eyebrow{ margin:0; font-size:11px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:rgba(255,255,255,.66) }
+#tab-proyectos .proy-hero h1{ margin:5px 0 0; color:#fff; font-size:22px; font-weight:600; letter-spacing:-.01em }
+#tab-proyectos .proy-hero .lede{ margin:6px 0 0; color:rgba(255,255,255,.82); font-size:13px; max-width:82ch }
+#tab-proyectos .proy-tools{ display:flex; align-items:center; gap:9px; flex-wrap:wrap; margin-bottom:12px }
+#tab-proyectos .proy-tools .spacer{ flex:1 }
+#tab-proyectos .btn.primary{ background:var(--accent); border-color:var(--accent); color:#fff }
+#tab-proyectos .proy-ribbon{ display:grid; grid-template-columns:repeat(4,1fr); background:var(--accent-soft); border:1px solid var(--accent-line); border-radius:var(--r-m); margin-bottom:12px; overflow:hidden }
+#tab-proyectos .proy-ribbon .cell{ padding:11px 16px; border-left:1px solid var(--accent-line) }
+#tab-proyectos .proy-ribbon .cell:first-child{ border-left:none; box-shadow:inset 3px 0 0 var(--accent) }
+#tab-proyectos .proy-ribbon .k{ font-size:10.5px; text-transform:uppercase; letter-spacing:.05em; color:var(--accent-hi); font-weight:700 }
+#tab-proyectos .proy-ribbon .v{ font-size:18px; font-weight:700; color:var(--text-primary); margin-top:3px; letter-spacing:-.01em; font-variant-numeric:tabular-nums }
+#tab-proyectos #tblProy thead th{ background:var(--accent-soft); color:var(--accent-hi); border-bottom:1px solid var(--accent-line) }
+#tab-proyectos .card>.card-h{ border-bottom:1px solid var(--border) }
+@media(max-width:760px){ #tab-proyectos .proy-ribbon{ grid-template-columns:repeat(2,1fr) } }
+#tab-proyectos select.proy-cat{ border-radius:3px; padding:2px 8px; font-size:11px; font-weight:600; letter-spacing:.02em; border:1px solid var(--border-strong); background:var(--surface-2); color:var(--text-secondary); cursor:pointer }
+#tab-proyectos select.proy-cat.cat-capex{ color:var(--accent); background:var(--accent-soft); border-color:var(--accent-line) }
+#tab-proyectos select.proy-cat.cat-enh{ color:var(--good); background:var(--good-soft); border-color:var(--good-line) }
+#tab-proyectos select.proy-cat.cat-mant{ color:var(--warn); background:var(--warn-soft); border-color:var(--warn-line) }
+#tab-proyectos .proy-adv{ display:flex; align-items:center; gap:8px; min-width:108px }
+#tab-proyectos .proy-bar{ flex:1; height:7px; border-radius:2px; background:var(--surface-3); overflow:hidden }
+#tab-proyectos .proy-bar>i{ display:block; height:100%; background:var(--accent) }
+#tab-proyectos .proy-bar>i.hot{ background:var(--warn) }
+#tab-proyectos .proy-adv b{ font-size:12px; font-weight:700; min-width:30px; text-align:right; color:var(--text-primary) }
 </style>
 </head>
 <body>
@@ -541,6 +571,9 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
     <button data-tab="historial">
       <span class="ico"><svg><use href="#i-hist"/></svg></span><span class="tx">Historial</span><span class="pill" id="pillHist">0</span>
     </button>
+    <button data-tab="proyectos">
+      <span class="ico"><svg><use href="#i-oc"/></svg></span><span class="tx">Proyectos y presupuesto</span><span class="pill" id="pillProy">0</span>
+    </button>
     <button data-tab="catalogos">
       <span class="ico"><svg><use href="#i-cat"/></svg></span><span class="tx">Sedes y proveedores</span>
     </button>
@@ -583,8 +616,8 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
 <main>
 <div id="libAlert" class="alert crit hide">
   <b>No pude cargar las librerías de lectura de PDF y Excel.</b>
-  Esta app las toma de <code>cdnjs.cloudflare.com</code> la primera vez que la abres. Si tu red corporativa lo bloquea,
-  pídele a TI que habilite ese dominio, o ábrela una vez desde una red sin restricción.
+  Esta app las toma de <code>cdnjs.cloudflare.com</code> y <code>cdn.jsdelivr.net</code> la primera vez que la abres. Si tu red
+  corporativa los bloquea, pídele a TI que habilite esos dominios, o ábrela una vez desde una red sin restricción.
 </div>
 
 <!-- ============ PANEL ============ -->
@@ -1411,6 +1444,43 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
     </div>
   </div>
 </section>
+
+<!-- ============ PROYECTOS Y PRESUPUESTO ============ -->
+<section class="panel" id="tab-proyectos">
+  <div class="proy-hero">
+    <div class="eyebrow">Año fiscal · Control presupuestario</div>
+    <h1>Proyectos y presupuesto</h1>
+    <p class="lede">Cada obra con su presupuesto aprobado. A medida que llegan las órdenes de compra y las facturas, el gasto se descuenta solo.</p>
+  </div>
+  <div class="proy-ribbon" id="proyRibbon"></div>
+  <div class="proy-tools">
+    <label class="fld">Año fiscal <select id="selFyProy" style="min-width:120px"></select></label>
+    <span class="spacer"></span>
+    <button class="btn" id="btnVerResumen" title="Ver el resumen del año con el flujo de caja por mes">Ver resumen</button>
+    <button class="btn" id="btnExportLibro" title="Descargar en un solo Excel los proyectos del año elegido (o todos, si está en «Todos los años»), con su hoja resumen">Descargar libro</button>
+    <button class="btn primary" id="btnPegarProy" title="Cargar de una vez muchos proyectos con su presupuesto, copiándolos de tu Excel">Pegar lista</button>
+    <button class="btn" id="btnAgregarProy" title="Agregar un proyecto a mano">Agregar proyecto</button>
+    <button class="btn" id="btnDetectarProy" title="Trae los códigos de proyecto que aparecen en las OC y las facturas">Detectar de OC/facturas</button>
+  </div>
+  <div class="card">
+    <div class="card-h">
+      <div class="hgroup"><h2>Proyectos</h2>
+        <div class="d">Escribe el presupuesto y elige la categoría de cada proyecto. Comprometido, facturado y saldo se calculan solos desde las OC y las facturas.</div></div>
+    </div>
+    <div class="body">
+      <div class="tbl-wrap" style="max-height:600px">
+        <table id="tblProy">
+          <thead><tr>
+            <th>Código</th><th>Nombre</th><th>Categoría</th><th>Año</th>
+            <th class="num">Presupuesto</th><th class="num">Comprometido</th><th class="num">Facturado</th><th>Utilización</th><th class="num">Saldo</th><th></th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <p class="hint">El botón <b>Excel</b> de cada fila descarga su hoja de proyecto (bloque de presupuesto + OC → facturas → saldo), lista para revisar o pegar en tu libro anual.</p>
+    </div>
+  </div>
+</section>
 </main>
 </div><!-- /mainwrap -->
 </div><!-- /app -->
@@ -1522,6 +1592,38 @@ kbd{font-family:var(--mono);font-size:10px;background:var(--surface-2);border:1p
       <button class="btn ghost" id="btnMfCancelar">Cancelar</button>
       <span class="spacer"></span>
       <button class="btn danger" id="btnMfEliminar">Eliminar esta factura</button>
+    </div>
+  </div>
+</div>
+<div class="modal hide" id="modalPegarProy">
+  <div class="box" style="max-width:760px">
+    <div class="card-h">
+      <h2>Cargar lista de proyectos</h2>
+      <span class="spacer"></span>
+      <button class="btn sm ghost" id="pegarProyCerrar">Cerrar</button>
+    </div>
+    <div class="body">
+      <p class="small muted" style="margin-top:0">Copia desde tu Excel una fila por proyecto, con estas columnas en este orden (separadas por tabulación o «;»):<br>
+        <b>Código · Nombre · Categoría · Presupuesto · Año fiscal</b>.<br>
+        La categoría puede ser Development Capex, Enhancement, Mantención o Gastos. El año puede ir como <code>FY26</code>, <code>2026</code> o <code>26</code>.
+        Si un código ya existe, se actualiza su presupuesto y categoría.</p>
+      <textarea id="pegarProyTxt" rows="10" spellcheck="false" style="width:100%;box-sizing:border-box;font-family:ui-monospace,monospace;font-size:12px" placeholder="HUECN26501&#9;Ampliación Edificio Administración&#9;Development Capex&#9;891.024.065&#9;FY26"></textarea>
+    </div>
+    <div class="pie">
+      <button class="btn primary" id="pegarProyCargar">Cargar proyectos</button>
+    </div>
+  </div>
+</div>
+<div class="modal hide" id="modalProy">
+  <div class="box" style="max-width:1200px">
+    <div class="card-h">
+      <h2 id="proyTitulo">Hoja de proyecto</h2>
+      <span class="spacer"></span>
+      <button class="btn sm" id="proyExcelDesde">Descargar Excel</button>
+      <button class="btn sm ghost" id="proyCerrar">Cerrar</button>
+    </div>
+    <div class="body">
+      <div id="proyPreview" style="max-height:74vh;overflow:auto;background:#fff;padding:14px;border:1px solid var(--border);border-radius:var(--r-m)"></div>
     </div>
   </div>
 </div>
@@ -1683,6 +1785,7 @@ function todasLasFacturas() {                        // de todas las nóminas, c
 /* db.fac queda como alias de las facturas de la nómina activa */
 function prepararDb(o) {
   o.nominas = Array.isArray(o.nominas) ? o.nominas : [];
+  o.proyectos = Array.isArray(o.proyectos) ? o.proyectos : [];   // presupuesto/categoría por proyecto
   o.nominas.forEach(n => {
     n.id = n.id || uid();
     n.fac = Array.isArray(n.fac) ? n.fac : [];
@@ -1742,6 +1845,7 @@ function dbDesdeObjeto(o) {
     },
     eepp: o.eepp || [],
     nominas: o.nominas || [],
+    proyectos: Array.isArray(o.proyectos) ? o.proyectos : [],
     activa: o.activa || "",
     __facSuelta: Array.isArray(o.fac) ? o.fac : []            // bases del modelo anterior
   };
@@ -3856,6 +3960,484 @@ function pintarCampoFecha(sel, iso, etiquetaVacia) {
 <script>
 "use strict";
 /* =========================================================================
+   PROYECTOS Y PRESUPUESTO
+   Cruza las OC y las facturas que la app ya tiene con el presupuesto y la
+   categoría de cada proyecto. Muestra la hoja de control con el formato del
+   libro anual dentro de la app, y la exporta a Excel: una hoja por proyecto o
+   el libro completo de un año fiscal (con una hoja resumen y el flujo de caja).
+   El presupuesto y la categoría se cargan acá (la app no los conoce solos).
+   ========================================================================= */
+
+const CATEGORIAS = ["DEVELOPMENT CAPEX", "ENHANCEMENT", "MANTENCIÓN", "GASTOS"];
+const MESES_FY = ["SEP", "OCT", "NOV", "DIC", "ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO"];
+
+/* ---------------- año fiscal (Cognita: 1-sep a 31-ago) ---------------- */
+function fiscalYear(iso) { if (!iso) return null; const y = +iso.slice(0, 4), m = +iso.slice(5, 7); return m >= 9 ? y + 1 : y; }
+function fyLabel(y) { return y ? "FY" + String(y).slice(-2) : "—"; }
+function fyDeFecha(clFecha) { const iso = clToIso(clFecha); return iso ? fiscalYear(iso) : null; }
+function mesesDeFy(y) {                                   // 12 claves "YYYY-MM" en orden fiscal (sep→ago)
+  const out = [];
+  for (let m = 9; m <= 12; m++) out.push(`${y - 1}-${String(m).padStart(2, "0")}`);
+  for (let m = 1; m <= 8; m++) out.push(`${y}-${String(m).padStart(2, "0")}`);
+  return out;
+}
+
+/* ---------------- detección de proyectos ---------------- */
+function esCodigoProyecto(p) { return !!p && !/^\d{5}$/.test(String(p).trim()); }
+function codigosDetectados() {
+  const set = new Set();
+  (db.cat.oc || []).forEach(o => { if (esCodigoProyecto(o.proy)) set.add(String(o.proy).trim()); });
+  todasLasFacturas().forEach(({ f }) => { if (esCodigoProyecto(f.proy)) set.add(String(f.proy).trim()); });
+  return [...set].sort();
+}
+function proyectoPorCodigo(cod) { return (db.proyectos || []).find(p => p.codigo === cod); }
+function detectarProyectos() {
+  db.proyectos = db.proyectos || [];
+  let nuevos = 0;
+  codigosDetectados().forEach(cod => {
+    if (!proyectoPorCodigo(cod)) { db.proyectos.push({ codigo: cod, nombre: "", categoria: "", ppto: null, fy: fyInferido(cod) }); nuevos++; }
+  });
+  setDirty(); render();
+  toast(nuevos ? `${nuevos} proyecto(s) detectado(s) de las OC y facturas` : "No hay proyectos nuevos por detectar");
+}
+
+/* ---------------- alta manual y carga masiva del maestro ---------------- */
+function agregarProyecto() {
+  db.proyectos = db.proyectos || [];
+  db.proyectos.unshift({ codigo: "", nombre: "", categoria: "", ppto: null, fy: fySeleccionado() || null });
+  setDirty(); render();
+  const c = document.querySelector('#tblProy tbody tr td[data-f="codigo"]'); if (c) c.focus();
+}
+function borrarProyecto(i) {
+  const p = (db.proyectos || [])[i]; if (!p) return;
+  if (!confirm(`Quitar el proyecto ${p.codigo || "(sin código)"} de la lista? No borra sus OC ni facturas, solo el presupuesto y la categoría cargados acá.`)) return;
+  db.proyectos.splice(i, 1); setDirty(); render();
+}
+function normCategoria(s) {
+  const u = up(s || ""); if (!u) return "";
+  if (u.includes("ENHANCE")) return "ENHANCEMENT";
+  if (u.includes("DEVELOP") || u.includes("CAPEX")) return "DEVELOPMENT CAPEX";
+  if (u.includes("MANTEN") || u.includes("MAINTEN")) return "MANTENCIÓN";
+  if (u.includes("GASTO")) return "GASTOS";
+  return CATEGORIAS.find(c => up(c) === u) || "";
+}
+function parseFyTxt(s) {
+  if (!s) return null; const m = String(s).match(/(\d{2,4})/); if (!m) return null;
+  let y = +m[1]; if (y < 100) y = 2000 + y; return y;
+}
+function parsearProyectos(txt) {
+  const res = [];
+  String(txt || "").split(/\r?\n/).forEach(l => {
+    if (!l.trim()) return;
+    const c = l.split(/\t|;/).map(x => x.trim());
+    if (/^(c[oó]d|code)/i.test(c[0] || "")) return;             // encabezado
+    const codigo = (c[0] || "").trim(); if (!codigo) return;
+    res.push({ codigo, nombre: c[1] || "", categoria: normCategoria(c[2] || ""), ppto: toNum(c[3] || "") || null, fy: parseFyTxt(c[4] || "") });
+  });
+  return res;
+}
+function cargarPegarProy() {
+  const filas = parsearProyectos(document.getElementById("pegarProyTxt").value);
+  if (!filas.length) { toast("No reconocí filas. Pega: Código, Nombre, Categoría, Presupuesto, Año (tab o ; entre columnas)"); return; }
+  db.proyectos = db.proyectos || [];
+  let creados = 0, actualizados = 0;
+  filas.forEach(f => {
+    const p = db.proyectos.find(x => up(x.codigo) === up(f.codigo));
+    if (p) { if (f.nombre) p.nombre = f.nombre; if (f.categoria) p.categoria = f.categoria; if (f.ppto != null) p.ppto = f.ppto; if (f.fy) p.fy = f.fy; actualizados++; }
+    else { db.proyectos.push({ codigo: f.codigo, nombre: f.nombre, categoria: f.categoria, ppto: f.ppto, fy: f.fy }); creados++; }
+  });
+  setDirty(); render();
+  document.getElementById("modalPegarProy").classList.add("hide");
+  document.getElementById("pegarProyTxt").value = "";
+  toast(`Proyectos cargados: ${creados} nuevo(s), ${actualizados} actualizado(s)`);
+}
+
+/* ---------------- facturas y agregación ---------------- */
+function facturasDeOc(ocNum) {
+  const out = [];
+  todasLasFacturas().forEach(({ f }) => {
+    if (f.oc && up(f.oc) === up(ocNum)) out.push({ fecha: f.fecha || "", doc: (f.exenta ? "FAEX " : "FAE ") + (f.doc || ""), monto: f.total || 0 });
+  });
+  return out;
+}
+function facturasDelProyecto(cod) {                       // para el flujo de caja: todas las del proyecto
+  const ocSet = new Set((db.cat.oc || []).filter(o => String(o.proy || "").trim() === cod).map(o => up(o.oc)));
+  const out = [];
+  todasLasFacturas().forEach(({ f }) => {
+    if (String(f.proy || "").trim() === cod || (f.oc && ocSet.has(up(f.oc)))) out.push({ fecha: f.fecha || "", monto: f.total || 0 });
+  });
+  return out;
+}
+function fyInferido(cod) {
+  const c = {}; facturasDelProyecto(cod).forEach(f => { const y = fyDeFecha(f.fecha); if (y) c[y] = (c[y] || 0) + 1; });
+  const k = Object.keys(c).sort((a, b) => c[b] - c[a]); return k.length ? +k[0] : null;
+}
+function fyDeProyecto(cod) { const p = proyectoPorCodigo(cod); return (p && p.fy) ? p.fy : fyInferido(cod); }
+function sedeDeProyecto(cod) {
+  const c = {}; (db.cat.oc || []).filter(o => String(o.proy || "").trim() === cod).forEach(o => { if (o.sede) c[o.sede] = (c[o.sede] || 0) + 1; });
+  const k = Object.keys(c).sort((a, b) => c[b] - c[a]); return k[0] || "";
+}
+function datosProyecto(cod) {
+  const p = proyectoPorCodigo(cod) || { codigo: cod, nombre: "", categoria: "", ppto: null };
+  const ocs = (db.cat.oc || []).filter(o => String(o.proy || "").trim() === cod).map(o => {
+    const facs = facturasDeOc(o.oc);
+    const facturado = facs.reduce((s, x) => s + x.monto, 0);
+    const orig = (o.monto === null || o.monto === undefined) ? null : o.monto;
+    const corr = orig;
+    return {
+      oc: o.oc, prov: proveedorTxt(o.rut) || "", desc: o.glosa || "", orig, corr, facs, facturado,
+      saldo: corr === null ? null : corr - facturado, dif: (orig === null || corr === null) ? 0 : orig - corr
+    };
+  }).sort((a, b) => String(a.oc).localeCompare(String(b.oc)));
+  const comprometido = ocs.reduce((s, o) => s + (o.corr || 0), 0);
+  const facturado = ocs.reduce((s, o) => s + o.facturado, 0);
+  return { p, ocs, comprometido, facturado, saldoDisp: (p.ppto || 0) - comprometido };
+}
+function flujoProyecto(cod, y) {
+  const keys = mesesDeFy(y), sums = keys.map(() => 0);
+  facturasDelProyecto(cod).forEach(f => { const iso = clToIso(f.fecha); if (!iso) return; const i = keys.indexOf(iso.slice(0, 7)); if (i >= 0) sums[i] += f.monto; });
+  return sums;
+}
+
+/* ---------------- años fiscales disponibles / activo ---------------- */
+let fyActivo = null;                                      // null = todos
+function todosLosFy() {
+  const s = new Set();
+  (db.proyectos || []).forEach(p => { const y = fyDeProyecto(p.codigo); if (y) s.add(y); });
+  return [...s].sort((a, b) => b - a);
+}
+function fySeleccionado() { const fys = todosLosFy(); return (fyActivo && fys.includes(fyActivo)) ? fyActivo : (fys[0] || null); }
+function proyectosDeFy(fy) { return (db.proyectos || []).filter(p => !fy || fyDeProyecto(p.codigo) === fy).map(p => p.codigo); }
+
+/* ---------------- pantalla ---------------- */
+function renderProyectos() {
+  const tb = document.querySelector("#tblProy tbody"); if (!tb) return;
+  const pill = document.getElementById("pillProy");
+  const lista = (db.proyectos || []);
+  if (pill) pill.textContent = lista.length;
+
+  const fys = todosLosFy();
+  const sel = document.getElementById("selFyProy");
+  if (sel) {
+    sel.innerHTML = `<option value="">Todos los años</option>` + fys.map(y => `<option value="${y}"${y === fyActivo ? " selected" : ""}>${fyLabel(y)}</option>`).join("");
+  }
+  const candidatos = fys.length ? fys : [];
+  const filtradas = lista.filter(p => !fyActivo || fyDeProyecto(p.codigo) === fyActivo);
+  tb.innerHTML = filtradas.map(p => {
+    const i = lista.indexOf(p);
+    const d = datosProyecto(p.codigo);
+    const fyp = fyDeProyecto(p.codigo);
+    const optCat = ["", ...CATEGORIAS].map(c => `<option value="${c}"${(p.categoria || "") === c ? " selected" : ""}>${c || "— elegir —"}</option>`).join("");
+    const setFy = [...new Set([...candidatos, fyp].filter(Boolean))].sort((a, b) => b - a);
+    const optFy = setFy.map(y => `<option value="${y}"${y === fyp ? " selected" : ""}>${fyLabel(y)}</option>`).join("");
+    const sobre = p.ppto && d.comprometido > p.ppto;
+    const catCls = { "DEVELOPMENT CAPEX": "cat-capex", "ENHANCEMENT": "cat-enh", "MANTENCIÓN": "cat-mant", "GASTOS": "cat-gasto" }[p.categoria] || "";
+    const av = p.ppto ? Math.min(100, Math.round(d.facturado / p.ppto * 100)) : null;
+    return `<tr data-i="${i}" data-cod="${esc(p.codigo)}">
+      <td class="mono edit" data-f="codigo" contenteditable>${esc(p.codigo)}</td>
+      <td class="edit" data-f="nombre" contenteditable>${esc(p.nombre || "")}</td>
+      <td><select data-f="categoria" class="proy-cat ${catCls}">${optCat}</select></td>
+      <td><select data-f="fy">${optFy || `<option value="">—</option>`}</select></td>
+      <td class="num edit" data-f="ppto" contenteditable>${p.ppto ? nf(p.ppto) : ""}</td>
+      <td class="num">${nf(d.comprometido)}</td>
+      <td class="num">${nf(d.facturado)}</td>
+      <td><div class="proy-adv"><div class="proy-bar"><i class="${av != null && av >= 90 ? "hot" : ""}" style="width:${av == null ? 0 : av}%"></i></div><b>${av == null ? "—" : av + "%"}</b></div></td>
+      <td class="num${sobre ? " neg" : ""}">${p.ppto ? nf(d.saldoDisp) : "—"}</td>
+      <td style="white-space:nowrap">
+        <button class="btn sm ghost" data-verproy="${esc(p.codigo)}" title="Ver la hoja del proyecto en pantalla">Ver</button>
+        <button class="btn sm" data-exportproy="${esc(p.codigo)}" title="Descargar la hoja de este proyecto en Excel">Excel</button>
+        <button class="btn sm ghost" data-delproy="${i}" title="Quitar este proyecto">✕</button></td></tr>`;
+  }).join("") || `<tr><td colspan="10" class="muted" style="padding:14px">Aún no hay proyectos${fyActivo ? " en " + fyLabel(fyActivo) : ""}. Usa «Agregar proyecto», «Pegar lista» o «Detectar proyectos».</td></tr>`;
+
+  const rib = document.getElementById("proyRibbon");
+  if (rib) {
+    rib.style.display = filtradas.length ? "grid" : "none";
+    const T = filtradas.reduce((a, p) => { const d = datosProyecto(p.codigo); a.ppto += p.ppto || 0; a.comp += d.comprometido; a.fact += d.facturado; return a; }, { ppto: 0, comp: 0, fact: 0 });
+    const celdas = [
+      ["Presupuesto" + (fyActivo ? " " + fyLabel(fyActivo) : ""), T.ppto],
+      ["Comprometido", T.comp],
+      ["Facturado", T.fact],
+      ["Saldo disponible", T.ppto - T.comp]
+    ];
+    rib.innerHTML = celdas.map(([k, v]) => `<div class="cell"><div class="k">${esc(k)}</div><div class="v">$${nf(v)}</div></div>`).join("");
+  }
+}
+
+/* ---------------- eventos ---------------- */
+if (document.getElementById("btnDetectarProy")) {
+  document.getElementById("btnDetectarProy").addEventListener("click", detectarProyectos);
+  const selFy = document.getElementById("selFyProy");
+  if (selFy) selFy.addEventListener("change", e => { fyActivo = e.target.value ? +e.target.value : null; renderProyectos(); });
+  const bLibro = document.getElementById("btnExportLibro");
+  if (bLibro) bLibro.addEventListener("click", () => exportarLibroFY(fyActivo));   // null = todos los años
+  const bRes = document.getElementById("btnVerResumen");
+  if (bRes) bRes.addEventListener("click", () => verResumen(fyActivo));
+
+  const tp = document.getElementById("tblProy");
+  tp.addEventListener("blur", e => {
+    const td = e.target.closest && e.target.closest("td.edit"); if (!td) return;
+    const p = db.proyectos[+td.closest("tr").dataset.i]; if (!p) return;
+    if (td.dataset.f === "ppto") p.ppto = toNum(td.textContent) || null;
+    else p[td.dataset.f] = td.textContent.trim();
+    setDirty(); render();
+  }, true);
+  tp.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.closest && e.target.closest("td.edit")) { e.preventDefault(); e.target.blur(); } });
+  tp.addEventListener("change", e => {
+    const sel = e.target.closest && e.target.closest("select[data-f]"); if (!sel) return;
+    const p = db.proyectos[+sel.closest("tr").dataset.i]; if (!p) return;
+    p[sel.dataset.f] = sel.dataset.f === "fy" ? (sel.value ? +sel.value : null) : sel.value;
+    setDirty(); render();
+  });
+  tp.addEventListener("click", e => {
+    const v = e.target.closest && e.target.closest("[data-verproy]");
+    const x = e.target.closest && e.target.closest("[data-exportproy]");
+    const d = e.target.closest && e.target.closest("[data-delproy]");
+    if (v && v.dataset.verproy) verHojaProyecto(v.dataset.verproy);
+    else if (x && x.dataset.exportproy) exportarHojaProyecto(x.dataset.exportproy);
+    else if (d) borrarProyecto(+d.dataset.delproy);
+  });
+
+  const bAdd = document.getElementById("btnAgregarProy");
+  if (bAdd) bAdd.addEventListener("click", agregarProyecto);
+  const bPeg = document.getElementById("btnPegarProy");
+  if (bPeg) bPeg.addEventListener("click", () => document.getElementById("modalPegarProy").classList.remove("hide"));
+  const cerrarPeg = () => document.getElementById("modalPegarProy").classList.add("hide");
+  if (document.getElementById("pegarProyCerrar")) document.getElementById("pegarProyCerrar").addEventListener("click", cerrarPeg);
+  if (document.getElementById("modalPegarProy")) document.getElementById("modalPegarProy").addEventListener("click", e => { if (e.target.id === "modalPegarProy") cerrarPeg(); });
+  if (document.getElementById("pegarProyCargar")) document.getElementById("pegarProyCargar").addEventListener("click", cargarPegarProy);
+
+  // modal de vista previa
+  const cerrar = () => document.getElementById("modalProy").classList.add("hide");
+  document.getElementById("proyCerrar").addEventListener("click", cerrar);
+  document.getElementById("modalProy").addEventListener("click", e => { if (e.target.id === "modalProy") cerrar(); });
+  document.getElementById("proyExcelDesde").addEventListener("click", () => {
+    if (previewActual.tipo === "resumen") exportarLibroFY(previewActual.fy);
+    else exportarHojaProyecto(previewActual.cod);
+  });
+}
+
+/* ---------------- vista previa en pantalla (mismo formato del Excel) ---------------- */
+let previewActual = { tipo: "proyecto", cod: null, fy: null };
+function abrirModalProy(titulo, html) {
+  document.getElementById("proyTitulo").textContent = titulo;
+  document.getElementById("proyPreview").innerHTML = html;
+  document.getElementById("modalProy").classList.remove("hide");
+}
+function verHojaProyecto(cod) { previewActual = { tipo: "proyecto", cod, fy: null }; abrirModalProy(`Hoja de proyecto · ${cod}`, htmlHojaProyecto(cod)); }
+function verResumen(fy) {
+  if (!proyectosDeFy(fy).length) { toast(fy ? `No hay proyectos en ${fyLabel(fy)}` : "Aún no hay proyectos que resumir"); return; }
+  previewActual = { tipo: "resumen", cod: null, fy: fy || null };
+  abrirModalProy(fy ? `Resumen y flujo de caja · ${fyLabel(fy)}` : "Resumen · todos los años", htmlResumen(fy || null));
+}
+
+const PVCSS = `<style>
+.pv{font-family:Arial,Helvetica,sans-serif;font-size:12px;color:#111}
+.pv .logo{text-align:right;color:#ED7D31;font-weight:700}
+.pv h3{font-size:14px;text-align:center;margin:2px 0 12px}
+.pv .hd td{padding:1px 8px}.pv .hd .l{font-weight:700}
+.pv table{border-collapse:collapse}
+.pv .blk td{border:1px solid #bfbfbf;padding:2px 10px}.pv .blk .l{font-weight:700;border:none}.pv .blk .v{background:#DDEBF7;text-align:right;min-width:110px}.pv .blk .u{font-weight:700;text-align:right;border:none}
+.pv .det{width:100%}
+.pv .det th{background:#1F3864;color:#fff;font-size:9px;padding:6px;border:1px solid #1F3864;text-align:right;vertical-align:middle}
+.pv .det th.l{text-align:left}
+.pv .det td{border:1px solid #d8d8d8;padding:2px 6px;font-size:11px;vertical-align:top}
+.pv .num{text-align:right;font-variant-numeric:tabular-nums}.pv .c{text-align:center}
+.pv tr.oc td{background:#F2F2F2}.pv tr.oc td:first-child{font-weight:700}
+.pv .prov,.pv .desc{font-size:9px}.pv .pc{color:#999}
+.pv td.amar{background:#FFC000;font-weight:700}.pv td.amar2{background:#FFE08A}
+.pv tr.tot td{background:#1F3864;color:#fff;font-weight:700}
+.pv tr.sub td{background:#e9edf5;font-weight:700}
+</style>`;
+
+function htmlHojaProyecto(cod) {
+  const D = datosProyecto(cod), p = D.p;
+  let filas = "";
+  for (const o of D.ocs) {
+    filas += `<tr class="oc"><td>${esc(o.oc)}</td><td class="prov">${esc(o.prov)}</td><td class="desc">${esc(o.desc)}</td>
+      <td class="num">${o.orig == null ? "" : nf(o.orig)}</td><td class="num">${o.corr == null ? "" : nf(o.corr)}</td>
+      <td></td><td></td><td class="num amar">${nf(o.facturado)}</td><td class="num">${o.saldo == null ? "" : nf(o.saldo)}</td><td class="num">${o.orig == null ? "" : nf(o.dif)}</td></tr>`;
+    o.facs.forEach(f => {
+      filas += `<tr><td></td><td></td><td></td><td></td><td></td><td class="c">${esc(f.fecha)}</td><td>${esc(f.doc)}</td><td class="num amar2">${nf(f.monto)}</td><td></td><td></td></tr>`;
+    });
+  }
+  const M = n => nf(Math.round((n || 0) / 1000));
+  return `${PVCSS}<div class="pv">
+    <div class="logo">COGNITA</div><h3>${esc(p.nombre || cod)}</h3>
+    <table class="hd"><tr><td class="l">PROYECTO</td><td>${esc(cod)}</td></tr>
+      <tr><td class="l">CLASIFICACIÓN</td><td>${esc(p.categoria || "—")}</td></tr>
+      <tr><td class="l">AÑO FISCAL</td><td>${fyLabel(fyDeProyecto(cod))}</td></tr></table>
+    <table class="blk" style="margin:8px 0 14px">
+      <tr><td class="l"></td><td class="u">CLP</td><td class="u">M$ CLP</td></tr>
+      <tr><td class="l">PRESUPUESTO TOTAL</td><td class="v">${nf(p.ppto || 0)}</td><td class="v">${M(p.ppto)}</td></tr>
+      <tr><td class="l">COMPROMETIDO TOTAL</td><td class="v">${nf(D.comprometido)}</td><td class="v">${M(D.comprometido)}</td></tr>
+      <tr><td class="l">SALDO DISPONIBLE</td><td class="v">${nf((p.ppto || 0) - D.comprometido)}</td><td class="v">${M((p.ppto || 0) - D.comprometido)}</td></tr>
+    </table>
+    <table class="det"><thead><tr>
+      <th class="l">ORDEN DE COMPRA</th><th class="l">PROVEEDOR</th><th class="l">DESCRIPCIÓN</th><th>OC ORIGINAL</th><th>OC CORREGIDA</th><th>FECHA</th><th class="l">DOCUMENTO</th><th>FACTURADO</th><th>SALDOS</th><th>DIF</th>
+    </tr></thead><tbody>${filas}
+      <tr class="tot"><td></td><td></td><td>TOTAL</td><td class="num">${nf(D.comprometido)}</td><td class="num">${nf(D.comprometido)}</td><td></td><td></td><td class="num">${nf(D.facturado)}</td><td class="num">${nf(D.comprometido - D.facturado)}</td><td class="num">0</td></tr>
+    </tbody></table></div>`;
+}
+
+function htmlResumen(fy) {
+  const conMeses = !!fy;
+  const cods = proyectosDeFy(fy);
+  const items = cods.map(c => { const d = datosProyecto(c); return { c, p: d.p, sede: sedeDeProyecto(c), comp: d.comprometido, fact: d.facturado, ppto: d.p.ppto || 0, fl: conMeses ? flujoProyecto(c, fy) : null }; })
+    .sort((a, b) => String(a.p.categoria || "ZZ").localeCompare(String(b.p.categoria || "ZZ")) || String(a.c).localeCompare(String(b.c)));
+  const g = { ppto: 0, comp: 0, fact: 0, pf: 0, sal: 0, m: new Array(12).fill(0) };
+  let filas = "";
+  for (const it of items) {
+    const pf = it.comp - it.fact, sal = it.ppto - it.comp;
+    g.ppto += it.ppto; g.comp += it.comp; g.fact += it.fact; g.pf += pf; g.sal += sal; if (conMeses) it.fl.forEach((v, m) => g.m[m] += v);
+    filas += `<tr><td class="c">${esc(it.sede)}</td><td>${esc(it.c)}</td><td class="desc">${esc(it.p.nombre || "")}</td><td class="desc">${esc(it.p.categoria || "")}</td>
+      <td class="num">${nf(it.ppto)}</td><td class="num">${nf(it.comp)}</td><td class="num amar">${nf(it.fact)}</td><td class="num">${nf(pf)}</td><td class="num">${nf(sal)}</td>
+      ${conMeses ? it.fl.map(v => `<td class="num">${v ? nf(v) : ""}</td>`).join("") : ""}</tr>`;
+  }
+  const totMes = conMeses ? g.m.map(v => `<td class="num">${v ? nf(v) : ""}</td>`).join("") : "";
+  const titulo = conMeses ? `Resumen ${fyLabel(fy)} · flujo de caja por mes (facturado)` : `Resumen · todos los proyectos (${items.length})`;
+  return `${PVCSS}<div class="pv"><h3>${titulo}</h3>
+    <table class="det"><thead><tr>
+      <th class="l">COLEGIO</th><th class="l">CÓDIGO</th><th class="l">PROYECTO</th><th class="l">CLASIFICACIÓN</th>
+      <th>PPTO</th><th>COMPROMETIDO</th><th>FACTURADO</th><th>POR FACTURAR</th><th>SALDO</th>
+      ${conMeses ? MESES_FY.map(m => `<th>${m}</th>`).join("") : ""}
+    </tr></thead><tbody>${filas}
+      <tr class="tot"><td></td><td></td><td>TOTAL${conMeses ? " " + fyLabel(fy) : ""}</td><td></td>
+        <td class="num">${nf(g.ppto)}</td><td class="num">${nf(g.comp)}</td><td class="num">${nf(g.fact)}</td><td class="num">${nf(g.pf)}</td><td class="num">${nf(g.sal)}</td>${totMes}</tr>
+    </tbody></table>
+    ${conMeses ? `<p style="font-size:11px;color:#666;margin-top:8px">El flujo mensual muestra lo <b>facturado</b> en cada mes según la fecha de la factura. La proyección de lo pendiente por facturar se puede cargar a mano en el Excel.</p>` : `<p style="font-size:11px;color:#666;margin-top:8px">Están todos los proyectos, de todos los años. Elige un año fiscal arriba para ver el flujo de caja mes a mes.</p>`}</div>`;
+}
+
+/* ---------------- Excel: estilos y armado de hojas ---------------- */
+function xb() { return { style: "thin", color: { rgb: "BFBFBF" } }; }
+const XBORDE = { top: xb(), bottom: xb(), left: xb(), right: xb() };
+const XS = {
+  titulo: { font: { bold: true, sz: 13 }, alignment: { horizontal: "center" } },
+  logo: { font: { bold: true, sz: 12, color: { rgb: "ED7D31" } }, alignment: { horizontal: "right" } },
+  lbl: { font: { bold: true } },
+  uni: { font: { bold: true }, alignment: { horizontal: "right" } },
+  blq: { fill: { patternType: "solid", fgColor: { rgb: "DDEBF7" } }, alignment: { horizontal: "right" }, border: XBORDE },
+  th: { font: { bold: true, sz: 9, color: { rgb: "FFFFFF" } }, fill: { patternType: "solid", fgColor: { rgb: "1F3864" } }, alignment: { wrapText: true, vertical: "center", horizontal: "center" }, border: XBORDE },
+  ocT: { fill: { patternType: "solid", fgColor: { rgb: "F2F2F2" } }, border: XBORDE, alignment: { vertical: "top" } },
+  amar: { fill: { patternType: "solid", fgColor: { rgb: "FFC000" } }, font: { bold: true }, alignment: { horizontal: "right" }, border: XBORDE },
+  amar2: { fill: { patternType: "solid", fgColor: { rgb: "FFE08A" } }, alignment: { horizontal: "right" }, border: XBORDE },
+  num: { alignment: { horizontal: "right" }, border: XBORDE },
+  cen: { alignment: { horizontal: "center" }, border: XBORDE },
+  txt: { border: XBORDE },
+  sub: { font: { bold: true }, fill: { patternType: "solid", fgColor: { rgb: "E9EDF5" } }, border: XBORDE },
+  tot: { font: { bold: true, color: { rgb: "FFFFFF" } }, fill: { patternType: "solid", fgColor: { rgb: "1F3864" } }, alignment: { horizontal: "right" }, border: XBORDE }
+};
+const Z = "#,##0";
+function mkPut(ws) {
+  return (addr, val, opt = {}) => {
+    const c = {};
+    if (opt.f) { c.t = "n"; c.f = opt.f; if (val !== undefined && val !== null) c.v = val; }
+    else if (typeof val === "number") { c.t = "n"; c.v = val; }
+    else { c.t = "s"; c.v = val == null ? "" : String(val); }
+    if (opt.z) c.z = opt.z; if (opt.s) c.s = opt.s;
+    ws[addr] = c;
+  };
+}
+const cc = (r, c) => XLSX.utils.encode_cell({ r, c });
+
+function hojaProyectoWS(cod) {
+  const D = datosProyecto(cod), p = D.p;
+  const ws = {}, merges = [], put = mkPut(ws);
+  put("K1", "COGNITA", { s: XS.logo });
+  put("A2", p.nombre || cod, { s: XS.titulo }); merges.push({ s: { r: 1, c: 0 }, e: { r: 1, c: 10 } });
+  put("C7", "PROYECTO", { s: XS.lbl }); put("D7", cod, { s: XS.lbl });
+  put("C8", "CLASIFICACIÓN", { s: XS.lbl }); put("D8", p.categoria || "");
+  put("E10", "CLP", { s: XS.uni }); put("F10", "M$ CLP", { s: XS.uni });
+  put("D11", "PRESUPUESTO TOTAL", { s: XS.lbl }); put("E11", p.ppto || 0, { z: Z, s: XS.blq }); put("F11", (p.ppto || 0) / 1000, { f: "E11/1000", z: Z, s: XS.blq });
+  const HEAD = ["", "ORDEN DE COMPRA", "PROVEEDOR", "DESCRIPCIÓN", "OC ORIGINAL", "OC CORREGIDA", "FECHA", "DOCUMENTO", "FACTURADO", "SALDOS", "DIF"];
+  HEAD.forEach((h, i) => put(cc(18, i), h, { s: XS.th }));
+  let r = 20; const ocRows = [];
+  for (const o of D.ocs) {
+    const r0 = r, R1 = r0 + 1, nf0 = o.facs.length; ocRows.push(r0);
+    put(cc(r0, 1), o.oc, { s: { ...XS.ocT, font: { bold: true } } });
+    put(cc(r0, 2), o.prov, { s: XS.ocT });
+    put(cc(r0, 3), o.desc, { s: XS.ocT });
+    if (o.orig !== null) {
+      put(`E${R1}`, o.orig, { z: Z, s: XS.num });
+      put(`F${R1}`, o.corr, { f: `E${R1}`, z: Z, s: XS.num });
+      put(`J${R1}`, o.saldo, { f: `F${R1}-I${R1}`, z: Z, s: XS.num });
+      put(`K${R1}`, o.dif, { f: `E${R1}-F${R1}`, z: Z, s: XS.num });
+    }
+    if (nf0) put(`I${R1}`, o.facturado, { f: `SUM(I${R1 + 1}:I${R1 + nf0})`, z: Z, s: XS.amar });
+    else put(`I${R1}`, 0, { z: Z, s: XS.amar });
+    o.facs.forEach((f, k) => { const rr = r0 + 1 + k; put(cc(rr, 6), f.fecha, { s: XS.cen }); put(cc(rr, 7), f.doc, { s: XS.txt }); put(`I${rr + 1}`, f.monto, { z: Z, s: XS.amar2 }); });
+    r = r0 + 1 + nf0;
+  }
+  const sum = col => ocRows.map(rr => `${col}${rr + 1}`).join(",");
+  put("D12", "COMPROMETIDO TOTAL", { s: XS.lbl });
+  put("E12", D.comprometido, { f: ocRows.length ? `SUM(${sum("F")})` : undefined, z: Z, s: XS.blq });
+  put("F12", D.comprometido / 1000, { f: "E12/1000", z: Z, s: XS.blq });
+  put("D13", "SALDO DISPONIBLE CONSTRUCCIÓN", { s: XS.lbl });
+  put("E13", (p.ppto || 0) - D.comprometido, { f: "E11-E12", z: Z, s: XS.blq });
+  put("F13", ((p.ppto || 0) - D.comprometido) / 1000, { f: "E13/1000", z: Z, s: XS.blq });
+  const rt = r;
+  put(cc(rt, 3), "TOTAL", { s: { ...XS.tot, alignment: { horizontal: "left" } } });
+  put(`E${rt + 1}`, D.comprometido, { f: ocRows.length ? `SUM(${sum("E")})` : undefined, z: Z, s: XS.tot });
+  put(`F${rt + 1}`, D.comprometido, { f: ocRows.length ? `SUM(${sum("F")})` : undefined, z: Z, s: XS.tot });
+  put(`I${rt + 1}`, D.facturado, { f: ocRows.length ? `SUM(${sum("I")})` : undefined, z: Z, s: XS.tot });
+  put(`J${rt + 1}`, D.comprometido - D.facturado, { f: ocRows.length ? `SUM(${sum("J")})` : undefined, z: Z, s: XS.tot });
+  ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r: rt + 1, c: 10 } });
+  ws["!cols"] = [{ wch: 16 }, { wch: 16 }, { wch: 34 }, { wch: 52 }, { wch: 15 }, { wch: 15 }, { wch: 10 }, { wch: 13 }, { wch: 16 }, { wch: 14 }, { wch: 8 }];
+  ws["!merges"] = merges;
+  return ws;
+}
+
+function hojaResumenWS(fy, cods) {
+  const conMeses = !!fy;
+  const ws = {}, put = mkPut(ws);
+  put("A1", "RESUMEN " + (fy ? fyLabel(fy) : "· TODOS LOS AÑOS"), { s: { font: { bold: true, sz: 14 } } });
+  const HEAD = ["COLEGIO", "CÓDIGO", "PROYECTO", "CLASIFICACIÓN", "PPTO", "COMPROMETIDO", "FACTURADO", "POR FACTURAR", "SALDO", ...(conMeses ? MESES_FY : [])];
+  HEAD.forEach((h, i) => put(cc(2, i), h, { s: XS.th }));
+  const items = cods.map(c => { const d = datosProyecto(c); return { c, p: d.p, sede: sedeDeProyecto(c), comp: d.comprometido, fact: d.facturado, ppto: d.p.ppto || 0, fl: conMeses ? flujoProyecto(c, fy) : null }; })
+    .sort((a, b) => String(a.p.categoria || "ZZ").localeCompare(String(b.p.categoria || "ZZ")) || String(a.c).localeCompare(String(b.c)));
+  let r = 3; const g = { ppto: 0, comp: 0, fact: 0, pf: 0, sal: 0, m: new Array(12).fill(0) };
+  for (const it of items) {
+    const pf = it.comp - it.fact, sal = it.ppto - it.comp;
+    g.ppto += it.ppto; g.comp += it.comp; g.fact += it.fact; g.pf += pf; g.sal += sal; if (conMeses) it.fl.forEach((v, m) => g.m[m] += v);
+    put(cc(r, 0), it.sede, { s: XS.cen }); put(cc(r, 1), it.c, { s: XS.txt }); put(cc(r, 2), it.p.nombre || "", { s: XS.txt }); put(cc(r, 3), it.p.categoria || "", { s: XS.txt });
+    [it.ppto, it.comp].forEach((v, k) => put(cc(r, 4 + k), v, { z: Z, s: XS.num }));
+    put(cc(r, 6), it.fact, { z: Z, s: XS.amar });
+    [pf, sal].forEach((v, k) => put(cc(r, 7 + k), v, { z: Z, s: XS.num }));
+    if (conMeses) it.fl.forEach((v, m) => put(cc(r, 9 + m), v, { z: Z, s: XS.num }));
+    r++;
+  }
+  put(cc(r, 2), "TOTAL" + (conMeses ? " " + fyLabel(fy) : ""), { s: { ...XS.tot, alignment: { horizontal: "left" } } });
+  [g.ppto, g.comp, g.fact, g.pf, g.sal].forEach((v, k) => put(cc(r, 4 + k), v, { z: Z, s: XS.tot }));
+  if (conMeses) g.m.forEach((v, m) => put(cc(r, 9 + m), v, { z: Z, s: XS.tot }));
+  ws["!ref"] = XLSX.utils.encode_range({ s: { r: 0, c: 0 }, e: { r, c: conMeses ? 8 + 12 : 8 } });
+  ws["!cols"] = [{ wch: 8 }, { wch: 13 }, { wch: 30 }, { wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 14 }, { wch: 13 }, { wch: 13 }, ...(conMeses ? MESES_FY.map(() => ({ wch: 11 })) : [])];
+  return ws;
+}
+
+/* ---------------- exportaciones ---------------- */
+function nombreHoja(cod) { return String(cod).slice(0, 31).replace(/[\\/?*\[\]:]/g, "-"); }
+function exportarHojaProyecto(cod) {
+  if (typeof XLSX === "undefined") { toast("La librería de Excel no cargó: revisa tu conexión y reintenta"); return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, hojaProyectoWS(cod), nombreHoja(cod));
+  XLSX.writeFile(wb, `Proyecto_${cod}_${hoyIso().replace(/-/g, "")}.xlsx`);
+  toast(`Hoja de ${cod} exportada a Excel`);
+}
+function exportarLibroFY(fy) {                             // fy null = todos los años
+  if (typeof XLSX === "undefined") { toast("La librería de Excel no cargó: revisa tu conexión y reintenta"); return; }
+  const cods = proyectosDeFy(fy);
+  if (!cods.length) { toast(fy ? `No hay proyectos en ${fyLabel(fy)}` : "No hay proyectos para exportar"); return; }
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, hojaResumenWS(fy, cods), fy ? "RESUMEN " + fyLabel(fy) : "RESUMEN");
+  const usados = {};
+  cods.forEach(c => { let n = nombreHoja(c) || "PROYECTO"; while (usados[n]) n = n.slice(0, 28) + "_" + (Object.keys(usados).length); usados[n] = 1; XLSX.utils.book_append_sheet(wb, hojaProyectoWS(c), n); });
+  const suf = fy ? fyLabel(fy) : "todos";
+  XLSX.writeFile(wb, `Libro_Proyectos_${suf}_${hoyIso().replace(/-/g, "")}.xlsx`);
+  toast(fy ? `Libro de ${fyLabel(fy)} exportado: ${cods.length} proyecto(s) + resumen` : `Libro exportado: ${cods.length} proyecto(s) de todos los años + resumen`);
+}
+</script>
+<script>
+"use strict";
+/* =========================================================================
    RENDER
    ========================================================================= */
 let soloProblemas = false;
@@ -3863,6 +4445,7 @@ let soloProblemas = false;
 function render() {
   db.fac.forEach(f => { if (f.tipo === "CAPEX" && !f.eeppId) aplicarCalce(f); });
   renderBarraNomina(); renderPeso(); renderTiles(); if (typeof renderLib === "function") renderLib(); renderEepp(); renderFac(); renderNomina(); renderCorreo(); renderHist(); renderCat(); renderOcCat();
+  if (typeof renderProyectos === "function") renderProyectos();
   if (typeof renderOcPdf === "function" && ocPdfLista.length) renderOcPdf();
   const porEnviar = db.eepp.filter(e => !e.enviado && !e.facId).length;
   const conAlerta = db.fac.reduce((s, f) => s + (nivel(controles(f)) === "ok" ? 0 : 1), 0);
@@ -4533,7 +5116,8 @@ function bajar(blob, nombre) {
    autoguardado en el navegador). Se quita el texto crudo del PDF, que es transitorio. */
 function snapshotBase() {
   const copia = JSON.parse(JSON.stringify({
-    v: DB_VERSION, meta: db.meta, cat: db.cat, eepp: db.eepp, nominas: db.nominas, activa: db.activa
+    v: DB_VERSION, meta: db.meta, cat: db.cat, eepp: db.eepp, nominas: db.nominas, activa: db.activa,
+    proyectos: db.proyectos || []
   }));
   copia.nominas.forEach(n => (n.fac || []).forEach(f => { delete f.texto; }));
   return copia;

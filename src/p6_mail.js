@@ -139,7 +139,8 @@ function bajar(blob, nombre) {
    autoguardado en el navegador). Se quita el texto crudo del PDF, que es transitorio. */
 function snapshotBase() {
   const copia = JSON.parse(JSON.stringify({
-    v: DB_VERSION, meta: db.meta, cat: db.cat, eepp: db.eepp, nominas: db.nominas, activa: db.activa
+    v: DB_VERSION, meta: db.meta, cat: db.cat, eepp: db.eepp, nominas: db.nominas, activa: db.activa,
+    proyectos: db.proyectos || []
   }));
   copia.nominas.forEach(n => (n.fac || []).forEach(f => { delete f.texto; }));
   return copia;
